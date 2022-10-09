@@ -1,18 +1,10 @@
 <template>
   <div @mousemove="onMousemove" ref="container" class="draggable-container">
     <div ref="side" class="side"></div>
-    <div
-      @mousedown="onMousedown(true)"
-      @mouseup="onMouseup(true)"
-      class="drag-bar-v"
-    ></div>
+    <div @mousedown="onMousedown(true)" @mouseup="onMouseup(true)" class="drag-bar-v"></div>
     <div class="other-side">
       <div class="top"></div>
-      <div
-        @mousedown="onMousedown(false)"
-        @mouseup="onMouseup(false)"
-        class="drag-bar-h"
-      ></div>
+      <div @mousedown="onMousedown(false)" @mouseup="onMouseup(false)" class="drag-bar-h"></div>
       <div class="bottom"></div>
     </div>
   </div>
@@ -41,14 +33,24 @@ const onMouseup = (isCol: boolean) => {
 
 const onMousemove = (e: MouseEvent) => {
   const containerEl = container.value as HTMLDivElement
+  const containerHeight = containerEl.clientHeight
+  const containerWidth = containerEl.clientWidth
+  const viewPortWidth = window.innerWidth
+  const viewPortHeight = window.innerHeight
   if (colResize.value) {
-    containerEl.style.setProperty('--side_width', e.clientX + 'px')
+    containerEl.style.setProperty('--side_width', containerWidth - (viewPortWidth - e.clientX) + 'px')
   }
 
   if (rowResize.value) {
-    containerEl.style.setProperty('--top_height', e.clientY + 'px')
+    containerEl.style.setProperty('--top_height', containerHeight - (viewPortHeight - e.clientY) + 'px')
   }
 }
+
+window.addEventListener('resize', () => {
+  const containerEl = container.value as HTMLDivElement
+  containerEl.style.setProperty('--side_width', '20%')
+  containerEl.style.setProperty('--top_height', '50%')
+})
 </script>
 
 <style>
