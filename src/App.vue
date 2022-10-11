@@ -3,27 +3,29 @@
     <n-layout-header bordered>
       <Navbar/>
     </n-layout-header>
-    <n-layout style="height: inherit" has-sider>
-      <n-layout-sider bordered>
+    <n-layout style="height: inherit" :has-sider="hasSider">
+      <n-layout-sider v-if="hasSider" width="180px" bordered>
         Handian Bridge
       </n-layout-sider>
       <n-layout-content bordered>
-        <Container/>
+        <router-view></router-view>
       </n-layout-content>
     </n-layout>
   </n-layout>
-  <!-- <Navbar />
-  <div style="height: inherit">
-    <div style="display: flex; flex-direction: row; height: 100%;">
-      <div>side bar</div>
-      <Container />
-    </div>
-  </div> -->
 </template>
 <script setup lang="ts">
 import { NLayout, NLayoutHeader, NLayoutSider, NLayoutContent } from 'naive-ui'
-import Container from './components/Container.vue'
 import Navbar from './components/Navbar.vue'
+import { useRouter } from 'vue-router'
+import { watch, ref } from 'vue'
+
+const hasSider = ref(true)
+const router = useRouter()
+
+watch(router.currentRoute, (o) => {
+    hasSider.value = o.name === 'Project'
+})
+
 </script>
 
 <style>
