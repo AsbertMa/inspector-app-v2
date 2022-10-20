@@ -1,11 +1,17 @@
 <template>
   <div @mousemove="onMousemove" ref="container" class="draggable-container">
-    <div ref="side" class="side"></div>
+    <div ref="side" class="side">
+        <slot name="side"> </slot>
+    </div>
     <div @mousedown="onMousedown(true)" @mouseup="onMouseup(true)" class="drag-bar-v"></div>
     <div class="other-side">
-      <div class="top"></div>
+      <div class="top">
+        <slot name="right-top"></slot>
+      </div>
       <div @mousedown="onMousedown(false)" @mouseup="onMouseup(false)" class="drag-bar-h"></div>
-      <div class="bottom"></div>
+      <div class="bottom">
+        <slot name="right-bottom" ></slot>
+      </div>
     </div>
   </div>
 </template>
@@ -65,6 +71,7 @@ window.addEventListener('resize', () => {
 
 .draggable-container .side {
   height: 100%;
+  overflow: auto;
   width: var(--side_width);
 }
 
@@ -75,10 +82,12 @@ window.addEventListener('resize', () => {
 
 .draggable-container .top {
   height: var(--top_height);
+  overflow: auto;
 }
 
 .draggable-container .bottom {
   height: calc(100% - var(--top_height) - var(--drag_bar_size));
+  overflow: auto;
 }
 
 /* drag bar style */
