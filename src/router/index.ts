@@ -21,7 +21,7 @@ const routes: Array<RouteRecordRaw> = [
         component: Explorer
     },
     {
-        path: '/project/:id/:option',
+        path: '/project/:id/:tab',
         name: 'Project',
         component: Project
     }
