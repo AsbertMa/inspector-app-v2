@@ -3,12 +3,18 @@ import Workspace from '@/views/workspace/Index.vue'
 import Deploy from '@/views/deploy/Index.vue'
 import Explorer from '@/views/explorer/Index.vue'
 import Project from '@/views/project/Index.vue'
+import Add from '@/views/workspace/Add.vue'
 
 const routes: Array<RouteRecordRaw> = [
     {
         path: '/workspace',
         name: 'Workspace',
         component: Workspace
+    },
+    {
+        path: '/workspace/new',
+        name: 'Workspace-add',
+        component: Add
     },
     {
         path: '/deploy',

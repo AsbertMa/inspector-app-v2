@@ -3,10 +3,14 @@
 </template>
 <script lang="ts" setup>
 import { NMenu, MenuOption } from 'naive-ui'
-import abi from '@/abis/Vtho.json'
 import ProtoFun from '@/abis/Prototype'
 import ProtoEvent from '@/abis/PrototypeEvent'
-import { computed, ref } from 'vue'
+import { computed, ref, defineProps, onMounted } from 'vue'
+import { ABI } from '@/abi'
+
+const props = defineProps<{
+    abi: (ABI.FunctionItem | ABI.EventItem)[]
+}>()
 
 const val = ref<string | undefined | number>('')
 const prList: MenuOption = {
@@ -36,9 +40,9 @@ const prototypeGroups = () => {
 
         }
         if (item.constant) {
-            prList.children?.push({...child, type: 'read'})
+            prList.children?.push({ ...child, type: 'read' })
         } else {
-            pwList.children?.push({...child, type: 'write'})
+            pwList.children?.push({ ...child, type: 'write' })
         }
     })
 
@@ -79,7 +83,7 @@ const menuOptions = computed(() => {
         children: []
     }
 
-    abi.forEach(item => {
+    props.abi.forEach(item => {
         const child = {
             key: item.name,
             abi: item,
@@ -93,16 +97,16 @@ const menuOptions = computed(() => {
             &&
             (item.constant === true || ['pure', 'view'].includes(item.stateMutability || ''))
         ) {
-            read.children?.push({...child, type: 'read'})
+            read.children?.push({ ...child, type: 'read' })
         } else if (item.type === 'function'
             &&
             (item.constant === false || !['pure', 'view'].includes(item.stateMutability || ''))
         ) {
-            write.children?.push({...child, type: 'write'})
+            write.children?.push({ ...child, type: 'write' })
         } else if (item.type === 'event') {
-            event.children?.push({...child, type: 'event'})
+            event.children?.push({ ...child, type: 'event' })
         } else if (item.type === 'fallback') {
-            fbs.children?.push({...child, type: 'fallback'})
+            fbs.children?.push({ ...child, type: 'fallback' })
         }
     })
 
@@ -115,5 +119,4 @@ const menuOptions = computed(() => {
         }
     })
 })
-val.value = menuOptions.value[0].children![0].key
 </script>
