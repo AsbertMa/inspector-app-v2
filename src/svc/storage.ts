@@ -1,4 +1,6 @@
 import Dexie, { Table } from 'dexie'
+import 'dexie-observable'
+import { IDatabaseChange } from 'dexie-observable/api'
 
 export interface Node {
     id?: number
@@ -103,22 +105,31 @@ export class DB extends Dexie {
         return await this.projects?.toArray()
     }
 
-    async getProjectConfig(projectId: number) {
-        return await this.projectSettings?.filter((o) => {
-            return o.projectId === projectId
+    async getProjectConfig(projectId: string) {
+        return await this.projectSettings?.where({
+            projectId: parseInt(projectId)
         }).toArray()
     }
 
-    async getNodeById(id: string) {
-        return await this.nodes?.get({id: parseInt(id)})
-    }
-
     async getProjectById(id: string) {
-        return await this.projects?.get({id: parseInt(id)})
+        return await this.projects?.get({ id: parseInt(id) })
     }
 
-    async getProjectSettingsById(id: string) {
-        return await this.projectSettings?.get({id: parseInt(id)})
+    public subscribe(
+        tableName: string,
+        onChange: (changes: IDatabaseChange[]) => void
+    ) {
+        const ev = this.on('changes')
+        const fn = (changes: IDatabaseChange[]) => {
+            changes = changes.filter((c) => c.table === tableName)
+            if (changes.length > 0) {
+                onChange(changes)
+            }
+        }
+        ev.subscribe(fn)
+        return {
+            unsubscribe: () => ev.unsubscribe(fn)
+        }
     }
 }
 
