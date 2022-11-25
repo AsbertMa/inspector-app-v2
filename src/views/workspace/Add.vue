@@ -1,21 +1,74 @@
 <template>
-    <n-form>
-        <n-form-item label="Workspace Name">
-            <n-input></n-input>
-        </n-form-item>
-        <n-form-item label="Description">
-            <n-input></n-input>
-        </n-form-item>
-        <n-form-item label="Contract ABI">
-            <n-input></n-input>
-        </n-form-item>
-    </n-form>
+    <n-card title="new Workspace" style="max-width: 600px;">
+        <n-form :model="formValues" @submit="save">
+            <n-form-item label="Name" path="name">
+                <n-input v-model:value="formValues.name" placeholder="Workspace Name"></n-input>
+            </n-form-item>
+            <n-form-item label="Description" path="description">
+                <n-input v-model:value="formValues.description" placeholder="ABI collection"></n-input>
+            </n-form-item>
+            <n-form-item label="ABI" path="abi">
+                <n-input v-model:value="formValues.abi" placeholder='Enter your ABI json K*input" : [], "name" : "functionName", type
+"function" }]' type="textarea"></n-input>
+            </n-form-item>
+            <n-form-item label="Network" path="node">
+                <n-select v-model:value="formValues.node" :options="nodeList"></n-select>
+            </n-form-item>
+            <n-form-item label="Address" path="address">
+                <n-input v-model:value="formValues.address" placeholder='Contract address start with "Ox"'></n-input>
+            </n-form-item>
+            <n-space justify="end">
+                <n-button @click="emits('finished')">Cancel</n-button>
+                <n-button @click="save" type="info">Create</n-button>
+            </n-space>
+        </n-form>
+    </n-card>
 </template>
 <script lang="ts" setup>
-import { NForm, NFormItem } from 'naive-ui'
+import { NForm, NFormItem, NInput, NSelect, NCard, NButton, NSpace, SelectOption} from 'naive-ui'
 import { DBInstance } from '@/svc/inject'
+import { onBeforeMount, defineEmits, ref } from 'vue'
 
 const _db = DBInstance()
+const nodeList = ref<SelectOption[]>()
+onBeforeMount(async () => {
+    const nodes = await _db.getNodes()
 
-// await _db.editProject('test', 'my test', '[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_amount","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_amount","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_amount","type":"uint256"}],"name":"move","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalBurned","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_from","type":"address"},{"indexed":true,"name":"_to","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_owner","type":"address"},{"indexed":true,"name":"_spender","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Approval","type":"event"}]')
+    nodeList.value = nodes?.map(node => {
+        return {
+            label: node.name,
+            value: node.id
+        }
+    })
+})
+
+const emits = defineEmits(['finished'])
+
+const formValues = ref({
+    name: '',
+    description: '',
+    abi: '',
+    node: 0,
+    address: ''
+})
+
+const save = async () => {
+    try {
+        await _db.projects?.add({
+            name: formValues.value.name,
+            description: formValues.value.description,
+            abi: formValues.value.abi
+        })
+
+        await _db.projectSettings?.add({
+            projectId: 1,
+            nodeId: formValues.value.node,
+            name: formValues.value.name,
+            address: formValues.value.address
+        })
+        emits('finished')
+    } catch (error) {
+        console.log(error)
+    }
+}
 </script>
