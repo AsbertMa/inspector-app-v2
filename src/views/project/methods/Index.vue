@@ -1,12 +1,17 @@
 <template>
     <Container>
         <template #side>
-            <AbiTree :abi="abi" @update-value="onUpdate" />
+            <AbiTree :abi="abi" @update-value="onAbiChange" />
         </template>
         <template #right-top>
             <n-card v-if="currentMethod" :bordered="false">
-                <state-bar v-model:config="config" @update:config="onConfigUpdate" :name="currentMethod.abi.name"
-                    :type="currentMethod && currentMethod.type" :options="opts" />
+                <template #header>
+                    <n-space justify="space-between">
+                        <StateBar v-model:config="config" @update:config="onAddressChange" :name="currentMethod.abi.name"
+                        :type="currentMethod && currentMethod.type" :options="opts" />
+                        <n-button @click="onCall">Call</n-button>
+                    </n-space>
+                </template>
                 <abi-card v-if="currentMethod" :item="currentMethod.abi" />
             </n-card>
         </template>
@@ -16,16 +21,20 @@
     </Container>
 </template>
 <script lang="ts" setup>
+import Connex from '@vechain/connex'
 import { ref, inject, computed, Ref } from 'vue'
 import Container from '@/components/Container.vue'
+import getConnex from '@/svc/connex'
 import AbiTree from './AbiTree.vue'
 import StateBar from './StateBar.vue'
 import AbiCard from './AbiCard.vue'
-import { MenuOption, NCard } from 'naive-ui'
+import { MenuOption, NCard, NButton, NSpace } from 'naive-ui'
 import { ABI } from '@/abi'
-import { Project } from '@/svc/storage'
+import { Project, ProjectSetting, Node } from '@/svc/storage'
 
 const project = inject<Ref<Project>>('project')
+const projectSettings = inject<Ref<{ setting: ProjectSetting, node: Node }[]>>('projectSettings')
+
 const abi = computed(() => {
     if (project && project.value) {
         return JSON.parse(project.value.abi)
@@ -35,38 +44,35 @@ const abi = computed(() => {
 })
 const currentMethod = ref<MenuOption & { abi: ABI.FunctionItem | ABI.EventItem }>()
 
-const config = ref(3)
-const onConfigUpdate = (v: any, o: any) => {
-    console.log(v, o)
+const defaultSetting = projectSettings?.value[0] || null
+
+const config = ref<number>()
+const connex = ref<Connex>()
+const account = ref<Connex.Thor.Account.Visitor>()
+
+config.value = defaultSetting!.setting.id!
+connex.value = getConnex(defaultSetting!.node)
+account.value = connex.value?.thor.account(defaultSetting!.setting.address)
+
+const opts = computed(() => {
+    return projectSettings?.value.map(p => {
+        return {
+            label: p.setting.name,
+            value: p.setting.id,
+            item: p
+        }
+    })
+})
+
+const onAddressChange = (v: any, pConfig: { setting: ProjectSetting, node: Node }) => {
+    connex.value = getConnex(pConfig.node)
+    account.value = connex.value?.thor.account(pConfig.setting.address)
 }
-const onUpdate = (key: string, item: MenuOption & { abi: ABI.FunctionItem | ABI.EventItem }) => {
+const onAbiChange = (key: string, item: MenuOption & { abi: ABI.FunctionItem | ABI.EventItem }) => {
     currentMethod.value = item
 }
 
-const opts = [
-    {
-        label: 'Drive My Car',
-        value: 1,
-        address: '909090909'
-    },
-    {
-        label: 'Norwegian Wood',
-        value: 2,
-        address: '9090909091svsdv'
-    },
-    {
-        label: `You Won't See`,
-        value: 3,
-        address: '909090909gdsasgwar'
-    },
-    {
-        label: 'Nowhere Man',
-        value: 4,
-        address: '909090909ponlknlkjn'
-    },
-    {
-        label: 'Think For Yourself',
-        value: 5,
-        address: '90909090rqeqweqw9'
-    }]
+const onCall = () => [
+    account.value?.method(abi.value).asClause()
+]
 </script>
