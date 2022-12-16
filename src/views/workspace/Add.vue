@@ -54,14 +54,14 @@ const formValues = ref({
 
 const save = async () => {
     try {
-        await _db.projects?.add({
+        const id = await _db.projects?.add({
             name: formValues.value.name,
             description: formValues.value.description,
             abi: formValues.value.abi
         })
 
         await _db.projectSettings?.add({
-            projectId: 1,
+            projectId: id as number,
             nodeId: formValues.value.node,
             name: formValues.value.name,
             address: formValues.value.address
