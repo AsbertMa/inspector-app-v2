@@ -5,7 +5,7 @@ import { IDatabaseChange } from 'dexie-observable/api'
 export interface Node {
     id?: number
     name: string
-    network: 'main' | 'test' | 'custom'
+    network: 'main' | 'test' | 'custom' | 'solo'
     url: string
     block_zero?: string
 }
