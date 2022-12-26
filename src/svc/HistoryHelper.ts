@@ -8,14 +8,16 @@ import { Node } from "./storage"
 export default interface History<T extends 'event' | 'function', E = {}> {
     time: number
     node: Node
+    type: string
     caller?: T extends 'function' ? string : never
     address: string
     abi: T extends 'event' ? abi.Event.Definition
         : T extends 'function' ? abi.Function.Definition
         : never
     params: any[]
+    receipt?: T extends 'function' ? Connex.Thor.Transaction.Receipt | null : never
+    tx?: T extends 'function' ? Connex.Thor.Transaction | null : never
     response?: (T extends 'event' ? Connex.Thor.Filter.Row<'event', Connex.Thor.Account.WithDecoded>[]
-        : T extends 'function' ? Connex.VM.Output & Connex.Thor.Account.WithDecoded
-        : never) | {message: string, code: string | number},
-    txResp?: T extends 'function' ? Connex.Vendor.TxResponse : never
+        : T extends 'function' ? Connex.VM.Output & Connex.Thor.Account.WithDecoded | Connex.Vendor.TxResponse
+        : never) | {message: string, code: string | number}
 }
