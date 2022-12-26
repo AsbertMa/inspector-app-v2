@@ -12,22 +12,24 @@
                         <n-icon class="fa-solid fa-chevron-right" />
                     </template>
                 </n-button>
-                <n-button type="tertiary" size="small" circle>
-                    <template #icon>
-                        <n-icon class="fa-solid fa-clock-rotate-left" />
-                    </template>
-                </n-button>
+                <n-dropdown :render-label="renderLabel" :options="options" @select="onSelect">
+                    <n-button type="tertiary" size="small" circle>
+                        <template #icon>
+                            <n-icon class="fa-solid fa-clock-rotate-left" />
+                        </template>
+                    </n-button>
+                </n-dropdown>
                 <n-input-group v-if="current">
                     <n-input-group-label>
                         <n-text style="text-transform: uppercase;" type="info">
-                            {{type}}
+                            {{ type }}
                         </n-text>
                     </n-input-group-label>
                     <n-input-group-label>
-                        {{baseInfo.network}}
+                        {{ baseInfo.network }}
                     </n-input-group-label>
                     <n-input-group-label>
-                        {{baseInfo.abi!.name}}
+                        {{ baseInfo.abi!.name }}
                     </n-input-group-label>
                 </n-input-group>
             </n-space>
@@ -38,55 +40,81 @@
                     <tbody>
                         <tr>
                             <td>Date:</td>
-                            <td>{{baseInfo.time}}</td>
+                            <td>{{ baseInfo.time }}</td>
                         </tr>
                         <tr>
                             <td>Network:</td>
-                            <td>{{baseInfo.network}}</td>
+                            <td>{{ baseInfo.network }}</td>
                         </tr>
                         <tr>
                             <td>Node Url:</td>
-                            <td>{{baseInfo.url}}</td>
+                            <td>{{ baseInfo.url }}</td>
                         </tr>
                         <tr>
                             <td>Contract Address:</td>
-                            <td>{{baseInfo.addr}}</td>
+                            <td>{{ baseInfo.addr }}</td>
                         </tr>
                         <tr>
                             <td>Mehtod / Event:</td>
-                            <td>{{baseInfo.abi.name}}</td>
+                            <td>{{ baseInfo.abi.name }}</td>
                         </tr>
                         <tr>
                             <td>Caller / Origin:</td>
-                            <td>{{baseInfo.caller}}</td>
+                            <td>{{ baseInfo.caller }}</td>
                         </tr>
                     </tbody>
                 </n-table>
             </n-tab-pane>
             <n-tab-pane name="request" tab="Request">
                 <n-text code style="width: 100%;white-space: break-spaces; word-break: break-all;">
-                    {{current.params}}
+                    {{ current.params }}
                 </n-text>
             </n-tab-pane>
             <n-tab-pane name="response" tab="Response">
                 <n-text code style="width: 100%;white-space: break-spaces; word-break: break-all;">
-                    {{current.response}}
+                    {{ current.response }}
                 </n-text>
             </n-tab-pane>
+            <n-tab-pane name="receipt" tab="Receipt" v-if="current.abi.type === 'function' && current.response && current.response.txid">
+                <n-text code style="width: 100%;white-space: break-spaces; word-break: break-all;">
+                    {{ current.receipt }}
+                </n-text>
+            </n-tab-pane>
+            <n-tab-pane name="Tx" tab="Transaction" v-if="current.abi.type === 'function'  && current.response && current.response.txid">
+                <n-text code style="width: 100%;white-space: break-spaces; word-break: break-all;">
+                    {{ current.tx }}
+                </n-text>
+            </n-tab-pane>
+            
         </n-tabs>
     </n-card>
 </template>
 <script lang="ts" setup>
-import { defineProps, computed } from 'vue'
-import { NCard, NSpace, NButton, NInputGroup, NIcon, NInputGroupLabel, NText, NTable, NTabs, NTabPane } from 'naive-ui'
+import { defineProps, computed, ref, h } from 'vue'
+import { NCard, NSpace, NButton, NInputGroup, NIcon, NInputGroupLabel, NText, NTable, NTabs, NTabPane, NDropdown, DropdownOption } from 'naive-ui'
 import History from '@/svc/HistoryHelper'
-
 const props = defineProps<{
     list: History<'event' | 'function'>[]
 }>()
 
+const selectIndex = ref<number>()
+
 const current = computed(() => {
-    return props.list[props.list.length - 1]
+    if (selectIndex.value === undefined) {
+        return props.list[props.list.length - 1]
+    } else {
+        return props.list[selectIndex.value]
+    }
+})
+
+
+const options = computed(() => {
+    return props.list.map(item => {
+        return {
+            key: item.time,
+            history: item
+        }
+    }).reverse()
 })
 
 const type = computed(() => {
@@ -105,6 +133,31 @@ const type = computed(() => {
     }
     return result
 })
+
+const renderLabel = (opt: DropdownOption) => {
+    const item = (opt as DropdownOption & { history: History<'event' | 'function'>}).history
+    return h(
+        NInputGroup,
+        null,
+        [
+            h(NInputGroupLabel, null, [
+                h(NText, {
+                    type: 'info',
+                    style: { textTransform: 'uppercase'}
+                }, [item.type])
+            ]),
+            h(NInputGroupLabel, null, [item.node.network]),
+            h(NInputGroupLabel, null, [item.abi.name])
+        ]
+    )
+}
+
+const onSelect = (k: string | number, opt: DropdownOption) => {
+    const index = props.list.findIndex(item => {
+        return item.time === k
+    })
+    selectIndex.value = index
+}
 
 const baseInfo = computed(() => {
     if (current.value) {

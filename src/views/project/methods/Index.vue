@@ -26,35 +26,39 @@ import History from '@/svc/HistoryHelper'
 
 const list = ref<History<'event' | 'function'>[]>([])
 
-const update = (time:number, abi: ABI.Event.Definition | abi.Function.Definition,
+const update = (time: number, abi: ABI.Event.Definition | abi.Function.Definition,
     address: string,
     node: Node,
-    params: any [],
-    response?: Connex.Thor.Filter.Row<'event', Connex.Thor.Account.WithDecoded>[] | Connex.VM.Output & Connex.Thor.Account.WithDecoded | {message: string, code: string | number},
-    caller?: string,
-    txResp?: Connex.Vendor.TxResponse) => {
-    if (abi.type ==='event') {
+    params: any[],
+    response?: any,
+    caller?: string) => {
+    if (abi.type === 'event') {
         const item: History<'event'> = {
             time,
             abi,
+            type: (currentMethod.value as any).type,
             address,
             node,
             params,
-            response: response as Connex.Thor.Filter.Row<'event', Connex.Thor.Account.WithDecoded>[] | {message: string, code: string | number}
+            response: response as Connex.Thor.Filter.Row<'event', Connex.Thor.Account.WithDecoded>[] | { message: string, code: string | number }
         }
         list.value.push(item)
     } else {
         const item: History<'function'> = {
             time,
+            type: (currentMethod.value as any).type,
             caller: caller,
             address,
             abi,
             node,
             params,
-            response: response as Connex.VM.Output & Connex.Thor.Account.WithDecoded | {message: string, code: string | number},
-            txResp
+            response: response,
         }
         list.value.push(item)
+    }
+
+    if (list.value.length > 10) {
+        list.value.shift()
     }
 }
 
@@ -72,21 +76,61 @@ const onAbiChange = (key: string, item: MenuOption & { abi: ABI.Event.Definition
     currentMethod.value = item
 }
 
+const fetchTx = async (txid: string, node: Node) => {
+    const connex = getConnex(node)
+    const ticker = connex.thor.ticker()
+    const txVisitor = connex.thor.transaction(txid)
+    let tx
+    const blockCheckNum = 12
+    let counter = 0
+    let receipt
+    for (; ;) {
+        try {
+            tx = await txVisitor.get()
+            receipt = await txVisitor.getReceipt()
+            if ((tx && receipt) || counter > blockCheckNum) {
+                break
+            }
+        } catch (error) {
+            break
+        }
+        counter ++
+        await ticker.next()
+    }
+
+    return {tx, receipt}
+}
+
 const onExecute = async (address: string, node: Node, params: any[] = []) => {
     const connex = getConnex(node)
     const account = connex.thor.account(address)
     const abi = currentMethod.value?.abi
     const method = account.method(abi || {})
     const time = Date.now()
-    let resp
+    let txResp
     try {
-        resp = await method.transact(params).request()
-        update(time, abi!, address, node, params, undefined, undefined, resp)
+        txResp = await method.transact(...params).request()
+        update(time, abi!, address, node, params, txResp, undefined)
+
     } catch (e) {
-        update(time, abi!, address, node, params, e as {code: number | string, message: string}, undefined, resp)
+        console.error(e)
+        update(time, abi!, address, node, params, e as { code: number | string, message: string }, undefined)
     }
 
-    
+    try {
+        const txid = txResp?.txid
+        const {tx, receipt} = await fetchTx(txid!, node)
+        const index = list.value.findIndex((item) => {
+            return item.response && item.response.txid === txid
+        });
+
+        if (list.value[index] && list.value[index].response && list.value[index].response!.txid === txid ) {
+            (list.value[index] as History<'function'>).tx = tx;
+            (list.value[index] as History<'function'>).receipt = receipt
+        }
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 const onCall = async (address: string, node: Node, params: any[] = [], caller?: string) => {
@@ -105,12 +149,11 @@ const onCall = async (address: string, node: Node, params: any[] = [], caller?: 
         update(time, abi!, address, node, params, resp, caller)
     } catch (e) {
         console.error(e)
-        update(time, abi!, address, node, params, e as {code: number | string, message: string}, caller)
+        update(time, abi!, address, node, params, e as { code: number | string, message: string }, caller)
     }
 }
 
 const onQuery = async (address: string, node: Node, params: any[] = []) => {
-    console.log(address, node, params)
     const connex = getConnex(node)
     const account = connex.thor.account(address)
     const abi = currentMethod.value?.abi
