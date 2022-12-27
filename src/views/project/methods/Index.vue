@@ -108,13 +108,16 @@ const onExecute = async (address: string, node: Node, params: any[] = []) => {
     const method = account.method(abi || {})
     const time = Date.now()
     let txResp
+    const temp = params.map((item, index) => {
+        return abi?.inputs[index].type.endsWith(']') ? JSON.parse(item) : item
+    })
     try {
-        txResp = await method.transact(...params).request()
-        update(time, abi!, address, node, params, txResp, undefined)
+        txResp = await method.transact(...temp).request()
+        update(time, abi!, address, node, temp, txResp, undefined)
 
     } catch (e) {
         console.error(e)
-        update(time, abi!, address, node, params, e as { code: number | string, message: string }, undefined)
+        update(time, abi!, address, node, temp, e as { code: number | string, message: string }, undefined)
     }
 
     try {
@@ -140,16 +143,19 @@ const onCall = async (address: string, node: Node, params: any[] = [], caller?: 
     const method = account.method(abi || {})
     let resp
     const time = Date.now()
+    const temp = params.map((item, index) => {
+        return abi?.inputs[index].type.endsWith(']') ? JSON.parse(item) : item
+    })
     try {
         if (caller) {
-            resp = await method.caller(caller).call(...params)
+            resp = await method.caller(caller).call(...temp)
         } else {
-            resp = await method.call(...params)
+            resp = await method.call(...temp)
         }
-        update(time, abi!, address, node, params, resp, caller)
+        update(time, abi!, address, node, temp, resp, caller)
     } catch (e) {
         console.error(e)
-        update(time, abi!, address, node, params, e as { code: number | string, message: string }, caller)
+        update(time, abi!, address, node, temp, e as { code: number | string, message: string }, caller)
     }
 }
 
