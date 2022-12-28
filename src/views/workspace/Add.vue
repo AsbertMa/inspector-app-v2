@@ -1,6 +1,6 @@
 <template>
     <n-card title="new Workspace" style="max-width: 600px;">
-        <n-form :model="formValues" @submit="save">
+        <n-form ref="formRef" :model="formValues" :rules="formRules" @submit="save">
             <n-form-item label="Name" path="name">
                 <n-input v-model:value="formValues.name" placeholder="Workspace Name"></n-input>
             </n-form-item>
@@ -19,13 +19,13 @@
             </n-form-item>
             <n-space justify="end">
                 <n-button @click="emits('finished')">Cancel</n-button>
-                <n-button @click="save" type="info">Create</n-button>
+                <n-button attr-type="submit" type="info">Create</n-button>
             </n-space>
         </n-form>
     </n-card>
 </template>
 <script lang="ts" setup>
-import { NForm, NFormItem, NInput, NSelect, NCard, NButton, NSpace, SelectOption} from 'naive-ui'
+import { NForm, NFormItem, NInput, NSelect, NCard, NButton, NSpace, SelectOption, FormInst} from 'naive-ui'
 import { DBInstance } from '@/svc/inject'
 import { onBeforeMount, defineEmits, ref } from 'vue'
 
@@ -43,32 +43,58 @@ onBeforeMount(async () => {
 })
 
 const emits = defineEmits(['finished'])
-
+const formRef = ref<FormInst | null>(null)
 const formValues = ref({
     name: '',
     description: '',
     abi: '',
-    node: 0,
+    node: null,
     address: ''
+})
+const formRules = ref({
+    name: {
+        required: true,
+        message: 'required'
+    },
+    description: {
+        required: true,
+        message: 'required'
+    },
+    abi: {
+        required: true,
+        message: 'required'
+    },
+    node: {
+        required: true,
+        message: 'required'
+    },
+    address: {
+        required: true,
+        message: 'required'
+    }
 })
 
 const save = async () => {
-    try {
-        const id = await _db.projects?.add({
-            name: formValues.value.name,
-            description: formValues.value.description,
-            abi: formValues.value.abi
-        })
+    formRef.value?.validate(async (e) => {
+        if(!e) {
+            try {
+                const id = await _db.projects?.add({
+                    name: formValues.value.name,
+                    description: formValues.value.description,
+                    abi: formValues.value.abi
+                })
 
-        await _db.projectSettings?.add({
-            projectId: id as number,
-            nodeId: formValues.value.node,
-            name: formValues.value.name,
-            address: formValues.value.address
-        })
-        emits('finished')
-    } catch (error) {
-        console.log(error)
-    }
+                await _db.projectSettings?.add({
+                    projectId: id as number,
+                    nodeId: formValues.value.node,
+                    name: formValues.value.name,
+                    address: formValues.value.address
+                })
+                emits('finished')
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    })
 }
 </script>
