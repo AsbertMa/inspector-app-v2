@@ -27,7 +27,7 @@
                     <n-form-item
                         :path="`params[${index}]`"
                         :rule="{
-                            required: true,
+                            required: abi?.type !== 'event',
                             message: `${v.name} required`,
                             trigger: 'blur'
                         }"
