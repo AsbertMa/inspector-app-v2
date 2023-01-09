@@ -14,9 +14,9 @@
                 </n-button-group>
             </n-space>
         </template>
-        <n-tabs>
+        <n-tabs :value="tab" :on-update:value="(value: string) => tab = value">
             <n-tab-pane name="desc" tab="Description">
-                <n-code :code="desc" />
+                <n-code style="font-size: 12px" show-line-numbers :code="desc" />
             </n-tab-pane>
             <n-tab-pane name="input" tab="Inputs">
                 <n-form ref="inputsForm" :model="formValue" label-width="auto" label-align="left"
@@ -54,6 +54,7 @@ import { abi as ABI } from 'thor-devkit'
 import StateBar from './StateBar.vue'
 import { ProjectSetting, Node } from '@/svc/storage'
 
+const tab = ref('input')
 const props = defineProps<{ currentMethod?: MenuOption & { abi: ABI.Function.Definition | ABI.Event.Definition } }>()
 const emits = defineEmits<{
     (e: 'call', address: string, node: Node, params?: any[], caller?: string): void
@@ -104,10 +105,11 @@ watch(() => abi.value, (v) => {
     }
 })
 const onCall = () => {
-    console.log('call')
+    console.log(8)
     inputsForm.value?.validate((errors) => {
-        console.log(errors, '9099099099990909090909090990')
+        console.log(errors)
         if (!errors) {
+            console.log(1)
             emits('call', _address.value!, _node.value!, formValue.params, formValue.caller)
         }
     })
@@ -122,6 +124,7 @@ const onExecute = () => {
 const onQuery = () => {
     emits('query', _address.value!, _node.value!, formValue.params)
 }
+
 const desc = computed(() => {
     return JSON.stringify(abi.value, null, '    ')
 })

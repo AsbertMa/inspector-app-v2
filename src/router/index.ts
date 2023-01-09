@@ -7,6 +7,10 @@ import Add from '@/views/workspace/Add.vue'
 
 const routes: Array<RouteRecordRaw> = [
     {
+        path: '/',
+        redirect: 'workspace'
+    },
+    {
         path: '/workspace',
         name: 'Workspace',
         component: Workspace

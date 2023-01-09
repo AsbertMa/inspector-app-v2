@@ -1,14 +1,21 @@
 <template>
-  <n-menu :options="options" />
+  <n-menu :options="options" :value="selected" :on-update:value="onUpdate" />
 </template>
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity'
+import { computed, ref, onMounted } from 'vue'
 import { NMenu } from 'naive-ui'
 import { h } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
 const router = useRouter()
+const selected = ref<string>('')
 
+const onUpdate = (key: string) => {
+    selected.value = key
+}
+router.isReady().then(() => {
+    selected.value = router.currentRoute.value.params.tab as string
+})
 const options = computed(() => {
   const id = router.currentRoute.value.params.id || 0
   return [{

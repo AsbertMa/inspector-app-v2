@@ -17,7 +17,7 @@
                         name: 'Project',
                         params: {
                             id: item.id,
-                            tab: 'overview'
+                            tab: 'methods'
                         }
                     })" :title="item.name" class="project-card">
                         {{  item.description  }}
