@@ -1,4 +1,4 @@
-# iav2
+# inspector-v2
 
 ## Project setup
 ```
