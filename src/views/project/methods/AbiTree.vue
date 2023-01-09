@@ -1,36 +1,43 @@
 <template>
+    <div style="margin: 10px 15px 0 25px">
+        <n-input v-model:value="search" round placeholder="search" />
+    </div>
     <n-menu v-model:value="val" v-bind="$attrs" :options="menuOptions"></n-menu>
 </template>
 <script lang="ts" setup>
-import { NMenu, MenuOption } from 'naive-ui'
+import { NMenu, MenuOption, NInput } from 'naive-ui'
 import ProtoFun from '@/abis/Prototype'
 import ProtoEvent from '@/abis/PrototypeEvent'
-import { computed, ref, defineProps, onMounted } from 'vue'
+import { computed, ref, defineProps } from 'vue'
 import { ABI } from '@/abi'
 
 const props = defineProps<{
     abi: (ABI.FunctionItem | ABI.EventItem)[]
 }>()
 
+const search = ref<string>('')
 const val = ref<string | undefined | number>('')
-const prList: MenuOption = {
-    label: 'Prototype Read',
-    key: 'pro-read',
-    children: []
-}
-const pwList: MenuOption = {
-    label: 'Prototype write',
-    key: 'pro-write',
-    children: []
-}
-const peList: MenuOption = {
-    label: 'Prototype Event',
-    key: 'pro-event',
-    children: []
-}
 
 const prototypeGroups = () => {
-    ProtoFun.forEach(item => {
+    const prList: MenuOption = {
+        label: 'Prototype Read',
+        key: 'pro-read',
+        children: []
+    }
+    const pwList: MenuOption = {
+        label: 'Prototype write',
+        key: 'pro-write',
+        children: []
+    }
+    const peList: MenuOption = {
+        label: 'Prototype Event',
+        key: 'pro-event',
+        children: []
+    }
+
+    ProtoFun.filter((item) => {
+        return item.name.includes(search.value)
+    }).forEach(item => {
         const child = {
             key: item.name,
             abi: item,
@@ -46,7 +53,9 @@ const prototypeGroups = () => {
         }
     })
 
-    ProtoEvent.forEach(item => {
+    ProtoEvent.filter((item) => {
+        return item.name.includes(search.value)
+    }).forEach(item => {
         peList.children?.push({
             key: item.name,
             abi: item,
@@ -57,8 +66,9 @@ const prototypeGroups = () => {
 
         })
     })
+
+    return [prList, pwList, peList]
 }
-prototypeGroups()
 
 const menuOptions = computed(() => {
     const read: MenuOption = {
@@ -92,6 +102,10 @@ const menuOptions = computed(() => {
             }
         }
 
+        if (!item.name.includes(search.value)) {
+            return
+        }
+
         // read functions
         if (item.type === 'function'
             &&
@@ -109,8 +123,8 @@ const menuOptions = computed(() => {
             fbs.children?.push({ ...child, type: 'fallback' })
         }
     })
-
-    return [read, write, event, fbs, prList, pwList, peList].filter(item => {
+    
+    return [read, write, event, fbs].concat(prototypeGroups()).filter(item => {
         return item.children && (item.children.length > 0)
     }).map(item => {
         return {

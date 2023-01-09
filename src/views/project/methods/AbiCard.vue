@@ -105,11 +105,8 @@ watch(() => abi.value, (v) => {
     }
 })
 const onCall = () => {
-    console.log(8)
     inputsForm.value?.validate((errors) => {
-        console.log(errors)
         if (!errors) {
-            console.log(1)
             emits('call', _address.value!, _node.value!, formValue.params, formValue.caller)
         }
     })
