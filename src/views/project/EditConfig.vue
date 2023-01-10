@@ -21,8 +21,9 @@
 <script lang="ts" setup>
 import { Node } from '@/svc/storage'
 import { inject, ref, Ref, computed, defineProps, defineEmits } from 'vue'
-import { NInput, NSelect, NForm, NFormItem, NCard, NButton, NSpace, FormInst } from 'naive-ui'
+import { NInput, NSelect, NForm, NFormItem, NCard, NButton, NSpace, FormInst, FormItemRule } from 'naive-ui'
 import { DBInstance } from '@/svc/inject'
+import { address } from 'thor-devkit'
 import router from '@/router'
 
 const formRef = ref<FormInst | null>(null)
@@ -43,7 +44,14 @@ const rules = ref({
     },
     address: {
         required: true,
-        message: 'required'
+        validator(rule: FormItemRule, value: string) {
+            if (!value) {
+                return new Error('required')
+            } else if (!address.test(value)) {
+                return new Error('invalid')
+            }
+            return true
+        }
     }
 })
 
@@ -98,10 +106,9 @@ const save = async () => {
                         projectId: parseInt(projectId as string)
                     })
                 }
+                emits('finished')
             } catch (error) {
                 console.error(error)
-            } finally {
-                emits('finished')
             }
         }
     })

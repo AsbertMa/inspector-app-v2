@@ -25,9 +25,10 @@
     </n-card>
 </template>
 <script lang="ts" setup>
-import { NForm, NFormItem, NInput, NSelect, NCard, NButton, NSpace, SelectOption, FormInst} from 'naive-ui'
+import { NForm, NFormItem, NInput, NSelect, NCard, NButton, NSpace, SelectOption, FormInst, FormItemRule } from 'naive-ui'
 import { DBInstance } from '@/svc/inject'
 import { onBeforeMount, defineEmits, ref } from 'vue'
+import { address } from 'thor-devkit'
 
 const _db = DBInstance()
 const nodeList = ref<SelectOption[]>()
@@ -70,13 +71,20 @@ const formRules = ref({
     },
     address: {
         required: true,
-        message: 'required'
+        validator(rule: FormItemRule, value: string) {
+            if (!value) {
+                return new Error('required')
+            } else if (!address.test(value)) {
+                return new Error('invalid')
+            }
+            return true
+        }
     }
 })
 
 const save = async () => {
     formRef.value?.validate(async (e) => {
-        if(!e) {
+        if (!e) {
             try {
                 const id = await _db.projects?.add({
                     name: formValues.value.name,
