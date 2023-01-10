@@ -34,7 +34,7 @@
                 </n-input-group>
             </n-space>
         </template>
-        <n-tabs v-if="current" size="small" type="line" animated>
+        <n-tabs :value="tab" :on-update:value="(key: string) => {tab = key}" v-if="current" size="small" type="line" animated>
             <n-tab-pane name="info" tab="Info">
                 <n-table size="small" :bordered="false">
                     <tbody>
@@ -85,12 +85,11 @@
                     {{ current.tx }}
                 </n-text>
             </n-tab-pane>
-            
         </n-tabs>
     </n-card>
 </template>
 <script lang="ts" setup>
-import { defineProps, computed, ref, h } from 'vue'
+import { defineProps, computed, ref, h, watch } from 'vue'
 import { NCard, NSpace, NButton, NInputGroup, NIcon, NInputGroupLabel, NText, NTable, NTabs, NTabPane, NDropdown, DropdownOption } from 'naive-ui'
 import History from '@/svc/HistoryHelper'
 const props = defineProps<{
@@ -98,6 +97,7 @@ const props = defineProps<{
 }>()
 
 const selectIndex = ref<number>()
+const tab = ref<string>('response')
 
 const current = computed(() => {
     if (selectIndex.value === undefined) {
@@ -105,6 +105,11 @@ const current = computed(() => {
     } else {
         return props.list[selectIndex.value]
     }
+})
+
+watch(props.list, () => {
+    selectIndex.value = undefined
+    tab.value = 'response'
 })
 
 

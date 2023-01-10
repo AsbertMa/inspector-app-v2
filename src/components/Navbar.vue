@@ -10,11 +10,12 @@ import type { MenuOption } from 'naive-ui'
 const m = ref<string>('')
 const router = useRouter()
 router.isReady().then(() => {
-    if (router.currentRoute.value.path.toLowerCase().includes('workspace')) {
+    const path = router.currentRoute.value.path.toLowerCase()
+    if (path.toLowerCase().includes('workspace') || path.includes('project')) {
         m.value = 'workspace'
-    } else if (router.currentRoute.value.path.toLowerCase().includes('deploy')) {
+    } else if (path.toLowerCase().includes('deploy')) {
         m.value = 'deploy'
-    } else if (router.currentRoute.value.path.toLowerCase().includes('explorer')) {
+    } else if (path.toLowerCase().includes('explorer')) {
         m.value = 'explorer'
     } else {
         router.push({name: 'Workspace'})

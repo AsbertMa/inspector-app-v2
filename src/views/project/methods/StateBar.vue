@@ -2,11 +2,11 @@
     <n-input-group>
         <n-input-group-label>
             <n-text style="text-transform: uppercase;" type="info">
-                {{  props.type  }}
+                {{ props.type }}
             </n-text>
         </n-input-group-label>
         <n-input-group-label>
-            {{  opt?.item.node.network  }}
+            {{ opt?.item.node.network }}
         </n-input-group-label>
         <n-select style="width: 250px" v-model:value="val" :render-tag="renderSelected" :render-label="renderLabel"
             :options="props.options" @update:value="onUpdate" />
@@ -49,7 +49,7 @@ const renderLabel = (option: any) => {
         'div',
         null,
         [
-            h('div', null, [item.node.name]),
+            h('div', null, [item.setting.name]),
             h('small', null, [item.setting.address])
         ]
     )
