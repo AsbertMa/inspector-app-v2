@@ -102,7 +102,7 @@ const menuOptions = computed(() => {
             }
         }
 
-        if (!item.name.includes(search.value)) {
+        if (item.name && !item.name.includes(search.value)) {
             return
         }
 
