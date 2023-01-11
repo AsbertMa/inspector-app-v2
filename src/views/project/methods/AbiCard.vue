@@ -48,7 +48,7 @@
     </n-card>
 </template>
 <script lang="ts" setup>
-import { computed, inject, ref, Ref, defineProps, watch, defineEmits, reactive } from 'vue'
+import { computed, inject, ref, Ref, defineProps, onMounted, defineEmits, reactive } from 'vue'
 import { FormInst, NTabs, NTabPane, NCode, NForm, NFormItem, NInput, NRadio, MenuOption, NSpace, NCard, NButton, NButtonGroup, NRadioGroup } from 'naive-ui'
 import { abi as ABI } from 'thor-devkit'
 import StateBar from './StateBar.vue'
@@ -97,13 +97,12 @@ const formValue = reactive({
     params: [null]
 })
 
-watch(() => abi.value, (v) => {
-    if (v) {
-        const temp = new Array(v.inputs.length)
-        temp.fill(null)
-        formValue.params = temp
-    }
-})
+onMounted(() => {
+    const temp = new Array(props.currentMethod?.abi.inputs.length)
+    temp.fill(null)
+    formValue.params = temp
+}, this)
+
 const onCall = () => {
     inputsForm.value?.validate((errors) => {
         if (!errors) {
