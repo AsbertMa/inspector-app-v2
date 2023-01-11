@@ -4,7 +4,7 @@
             <AbiTree :abi="abis" @update-value="onAbiChange" />
         </template>
         <template #right-top>
-            <abi-card @call="onCall" @execute="onExecute" @query="onQuery" :currentMethod="currentMethod" />
+            <abi-card :key="cardKey" @call="onCall" @execute="onExecute" @query="onQuery" :currentMethod="currentMethod" />
         </template>
         <template #right-bottom>
             <HistoryView :list="list" />
@@ -69,6 +69,10 @@ const abis = computed(() => {
     } else {
         return []
     }
+})
+
+const cardKey = computed(() => {
+    return currentMethod.value?.label
 })
 const currentMethod = ref<MenuOption & { abi: ABI.Function.Definition | ABI.Event.Definition }>()
 

@@ -100,7 +100,7 @@ const save = async () => {
                 })
                 emits('finished')
             } catch (error) {
-                console.log(error)
+                console.error(error)
             }
         }
     })
