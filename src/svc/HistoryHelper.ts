@@ -1,6 +1,6 @@
 // import { Connex } from "@vechain/connex"
 import { abi } from "thor-devkit"
-import { Node } from "./storage"
+import { Node, ProjectSetting } from "./storage"
 
 // export type Response = Connex.Thor.Filter.Row<"event", Connex.Thor.Account.WithDecoded>[] | (Connex.VM.Output & Connex.Thor.Account.WithDecoded)
 
@@ -10,10 +10,10 @@ export default interface History<T extends 'event' | 'function', E = {}> {
     node: Node
     type: string
     caller?: T extends 'function' ? string : never
-    address: string
     abi: T extends 'event' ? abi.Event.Definition
         : T extends 'function' ? abi.Function.Definition
         : never
+    settings: ProjectSetting
     params: any[]
     receipt?: T extends 'function' ? Connex.Thor.Transaction.Receipt | null : never
     tx?: T extends 'function' ? Connex.Thor.Transaction | null : never

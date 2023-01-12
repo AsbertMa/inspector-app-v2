@@ -29,6 +29,9 @@
                         {{ baseInfo.network }}
                     </n-input-group-label>
                     <n-input-group-label>
+                        {{ baseInfo.contractName }}
+                    </n-input-group-label>
+                    <n-input-group-label>
                         {{ baseInfo.abi!.name }}
                     </n-input-group-label>
                 </n-input-group>
@@ -145,14 +148,24 @@ const renderLabel = (opt: DropdownOption) => {
         NInputGroup,
         null,
         [
-            h(NInputGroupLabel, null, [
+            h(NInputGroupLabel,
+            {
+                size: 'small'
+            }, [
                 h(NText, {
                     type: 'info',
                     style: { textTransform: 'uppercase'}
                 }, [item.type])
             ]),
-            h(NInputGroupLabel, null, [item.node.network]),
-            h(NInputGroupLabel, null, [item.abi.name])
+            h(NInputGroupLabel, {
+                size: 'small'
+            }, [item.node.network]),
+            h(NInputGroupLabel, {
+                size: 'small'
+            }, [item.settings.name]),
+            h(NInputGroupLabel, {
+                size: 'small'
+            }, [item.abi.name])
         ]
     )
 }
@@ -170,8 +183,9 @@ const baseInfo = computed(() => {
             time: new Date(current.value.time).toLocaleString(),
             abi: current.value.abi,
             network: current.value.node.network,
+            contractName: current.value.settings.name,
             url: current.value.node.url,
-            addr: current.value.address,
+            addr: current.value.settings.address,
             caller: current.value.caller
         }
     } else {

@@ -21,13 +21,14 @@ import AbiCard from './AbiCard.vue'
 import { MenuOption } from 'naive-ui'
 import { abi, abi as ABI } from 'thor-devkit'
 import HistoryView from './History.vue'
-import { Project, Node } from '@/svc/storage'
+import { Project, Node, ProjectSetting } from '@/svc/storage'
 import History from '@/svc/HistoryHelper'
 
 const list = ref<History<'event' | 'function'>[]>([])
 
-const update = (time: number, abi: ABI.Event.Definition | abi.Function.Definition,
-    address: string,
+const update = (time: number,
+    abi: ABI.Event.Definition | abi.Function.Definition,
+    settings: ProjectSetting,
     node: Node,
     params: any[],
     response?: any,
@@ -36,8 +37,8 @@ const update = (time: number, abi: ABI.Event.Definition | abi.Function.Definitio
         const item: History<'event'> = {
             time,
             abi,
+            settings,
             type: (currentMethod.value as any).type,
-            address,
             node,
             params,
             response: response as Connex.Thor.Filter.Row<'event', Connex.Thor.Account.WithDecoded>[] | { message: string, code: string | number }
@@ -48,7 +49,7 @@ const update = (time: number, abi: ABI.Event.Definition | abi.Function.Definitio
             time,
             type: (currentMethod.value as any).type,
             caller: caller,
-            address,
+            settings,
             abi,
             node,
             params,
@@ -105,9 +106,9 @@ const fetchTx = async (txid: string, node: Node) => {
     return {tx, receipt}
 }
 
-const onExecute = async (address: string, node: Node, params: any[] = []) => {
+const onExecute = async (settings: ProjectSetting, node: Node, params: any[] = []) => {
     const connex = getConnex(node)
-    const account = connex.thor.account(address)
+    const account = connex.thor.account(settings.address)
     const abi = currentMethod.value?.abi
     const method = account.method(abi || {})
     const time = Date.now()
@@ -117,11 +118,11 @@ const onExecute = async (address: string, node: Node, params: any[] = []) => {
     })
     try {
         txResp = await method.transact(...temp).request()
-        update(time, abi!, address, node, temp, txResp, undefined)
+        update(time, abi!, settings, node, temp, txResp, undefined)
 
     } catch (e) {
         console.error(e)
-        update(time, abi!, address, node, temp, e as { code: number | string, message: string }, undefined)
+        update(time, abi!, settings, node, temp, e as { code: number | string, message: string }, undefined)
     }
 
     try {
@@ -140,9 +141,9 @@ const onExecute = async (address: string, node: Node, params: any[] = []) => {
     }
 }
 
-const onCall = async (address: string, node: Node, params: any[] = [], caller?: string) => {
+const onCall = async (settings: ProjectSetting, node: Node, params: any[] = [], caller?: string) => {
     const connex = getConnex(node)
-    const account = connex.thor.account(address)
+    const account = connex.thor.account(settings.address)
     const abi = currentMethod.value?.abi
     const method = account.method(abi || {})
     let resp
@@ -156,16 +157,16 @@ const onCall = async (address: string, node: Node, params: any[] = [], caller?: 
         } else {
             resp = await method.call(...temp)
         }
-        update(time, abi!, address, node, temp, resp, caller)
+        update(time, abi!, settings, node, temp, resp, caller)
     } catch (e) {
         console.error(e)
-        update(time, abi!, address, node, temp, e as { code: number | string, message: string }, caller)
+        update(time, abi!, settings, node, temp, e as { code: number | string, message: string }, caller)
     }
 }
 
-const onQuery = async (address: string, node: Node, params: any[] = []) => {
+const onQuery = async (settings: ProjectSetting, node: Node, params: any[] = []) => {
     const connex = getConnex(node)
-    const account = connex.thor.account(address)
+    const account = connex.thor.account(settings.address)
     const abi = currentMethod.value?.abi
     const filters: any[] = []
     const time = Date.now()
@@ -179,6 +180,6 @@ const onQuery = async (address: string, node: Node, params: any[] = []) => {
     const event = account.event(abi || {})
     const resp = await event.filter(filters).order('desc').apply(0, 5)
 
-    update(time, abi!, address, node, params, resp)
+    update(time, abi!, settings, node, params, resp)
 }
 </script>

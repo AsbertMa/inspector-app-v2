@@ -57,9 +57,9 @@ import { ProjectSetting, Node } from '@/svc/storage'
 const tab = ref('input')
 const props = defineProps<{ currentMethod?: MenuOption & { abi: ABI.Function.Definition | ABI.Event.Definition } }>()
 const emits = defineEmits<{
-    (e: 'call', address: string, node: Node, params?: any[], caller?: string): void
-    (e: 'execute', address: string, node: Node, params?: any[]): void
-    (e: 'query', address: string, node: Node, params?: any[]): void
+    (e: 'call', _settings: ProjectSetting, node: Node, params?: any[], caller?: string): void
+    (e: 'execute', _settings: ProjectSetting, node: Node, params?: any[]): void
+    (e: 'query', _settings: ProjectSetting, node: Node, params?: any[]): void
 }>()
 
 const projectSettings = inject<Ref<{ setting: ProjectSetting, node: Node }[]>>('projectSettings')
@@ -67,11 +67,11 @@ const defaultSetting = projectSettings?.value[0] || null
 
 const config = ref<number>()
 const _node = ref<Node>()
-const _address = ref<string>()
+const _settings = ref<ProjectSetting>()
 
 config.value = defaultSetting!.setting.id!
 _node.value = defaultSetting?.node
-_address.value = defaultSetting?.setting.address
+_settings.value = defaultSetting?.setting
 
 const opts = computed(() => {
     return projectSettings?.value.map(p => {
@@ -84,7 +84,7 @@ const opts = computed(() => {
 })
 const onAddressChange = (v: any, pConfig: { setting: ProjectSetting, node: Node }) => {
     _node.value = pConfig.node
-    _address.value = pConfig.setting.address
+    _settings.value = pConfig.setting
 }
 
 const abi = computed(() => {
@@ -106,19 +106,19 @@ onMounted(() => {
 const onCall = () => {
     inputsForm.value?.validate((errors) => {
         if (!errors) {
-            emits('call', _address.value!, _node.value!, formValue.params, formValue.caller)
+            emits('call', _settings.value!, _node.value!, formValue.params, formValue.caller)
         }
     })
 }
 const onExecute = () => {
     inputsForm.value?.validate((errors) => {
         if (!errors) {
-            emits('execute', _address.value!, _node.value!, formValue.params)
+            emits('execute', _settings.value!, _node.value!, formValue.params)
         }
     })
 }
 const onQuery = () => {
-    emits('query', _address.value!, _node.value!, formValue.params)
+    emits('query', _settings.value!, _node.value!, formValue.params)
 }
 
 const desc = computed(() => {
