@@ -17,5 +17,4 @@ export default function getConnex(node: Node) {
         connexList.set(node.id!, _connex)
         return _connex
     }
-
 }

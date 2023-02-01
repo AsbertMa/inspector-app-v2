@@ -5,8 +5,50 @@ import router from './router'
 import App from './App.vue'
 import './registerServiceWorker'
 import '@fortawesome/fontawesome-free/css/all.css'
+import {
+    create,
+    NButton,
+    NButtonGroup,
+    NForm,
+    NFormItem,
+    NTabs,
+    NTabPane,
+    NCode,
+    NCollapse,
+    NCollapseItem,
+    NMenu,
+    NInput,
+    NRadio, NSpace, NCard, NRadioGroup,
+    NLayout, NLayoutHeader, NLayoutSider, NLayoutContent,
+    NTable, NIcon, NModal,
+    NSelect,
+    NInputGroup, NInputGroupLabel, NText, NDropdown,
+    NGrid, NGi,
+} from 'naive-ui'
+const naive = create({
+    components: [
+        NButton,
+        NButtonGroup,
+        NForm,
+        NFormItem,
+        NTabs,
+        NTabPane,
+        NCode,
+        NCollapse,
+        NCollapseItem,
+        NMenu,
+        NInput,
+        NRadio, NSpace, NCard, NRadioGroup,
+        NLayout, NLayoutHeader, NLayoutSider, NLayoutContent,
+        NTable, NIcon, NModal,
+        NSelect,
+        NInputGroup, NInputGroupLabel, NText, NDropdown,
+        NGrid, NGi
+    ]
+})
 
 const Inspector = createApp(App)
+Inspector.use(naive)
 Inspector.provide(keys.Database, DBInstance)
 Inspector.use(router).mount('#app')
 

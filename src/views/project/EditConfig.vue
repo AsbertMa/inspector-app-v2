@@ -21,10 +21,10 @@
 <script lang="ts" setup>
 import { Node } from '@/svc/storage'
 import { inject, ref, Ref, computed, defineProps, defineEmits } from 'vue'
-import { NInput, NSelect, NForm, NFormItem, NCard, NButton, NSpace, FormInst, FormItemRule } from 'naive-ui'
 import { DBInstance } from '@/svc/inject'
 import { address } from 'thor-devkit'
 import router from '@/router'
+import { FormInst, FormItemRule } from 'naive-ui'
 
 const formRef = ref<FormInst | null>(null)
 const nodes = inject<Ref<Node[]>>('nodes')

@@ -1,12 +1,10 @@
 <template>
-  <n-menu :options="menuOptions" mode="horizontal" :value="m" :on-update:value="onUpdate" />
+    <n-menu :options="menuOptions" mode="horizontal" :value="m" :on-update:value="onUpdate" />
 </template>
 <script lang="ts" setup>
-import { NMenu } from 'naive-ui'
 import { h, ref } from 'vue'
+import { MenuOption } from 'naive-ui'
 import { useRouter, RouterLink } from 'vue-router'
-import type { MenuOption } from 'naive-ui'
-
 const m = ref<string>('')
 const router = useRouter()
 router.isReady().then(() => {
@@ -18,7 +16,7 @@ router.isReady().then(() => {
     } else if (path.toLowerCase().includes('explorer')) {
         m.value = 'explorer'
     } else {
-        router.push({name: 'Workspace'})
+        router.push({ name: 'Workspace' })
     }
 })
 
@@ -26,47 +24,47 @@ const onUpdate = (key: string) => {
     m.value = key
 }
 const menuOptions: MenuOption[] = [
-  {
-    key: 'workspace',
-    label: () => {
-      return h(
-        RouterLink,
-        {
-          to: {
-            name: 'Workspace'
-          }
-        },
-        { default: () => 'Workspace' }
-      )
+    {
+        key: 'workspace',
+        label: () => {
+            return h(
+                RouterLink,
+                {
+                    to: {
+                        name: 'Workspace'
+                    }
+                },
+                { default: () => 'Workspace' }
+            )
+        }
+    },
+    {
+        key: 'deploy',
+        label: () => {
+            return h(
+                RouterLink,
+                {
+                    to: {
+                        name: 'Deploy'
+                    }
+                },
+                { default: () => 'Deploy' }
+            )
+        }
+    },
+    {
+        key: 'explorer',
+        label: () => {
+            return h(
+                RouterLink,
+                {
+                    to: {
+                        name: 'Explorer'
+                    }
+                },
+                { default: () => 'Explorer' }
+            )
+        }
     }
-  },
-  {
-    key: 'deploy',
-    label: () => {
-      return h(
-        RouterLink,
-        {
-          to: {
-            name: 'Deploy'
-          }
-        },
-        { default: () => 'Deploy' }
-      )
-    }
-  },
-  {
-    key: 'explorer',
-    label: () => {
-      return h(
-        RouterLink,
-        {
-          to: {
-            name: 'Explorer'
-          }
-        },
-        { default: () => 'Explorer' }
-      )
-    }
-  }
 ]
 </script>

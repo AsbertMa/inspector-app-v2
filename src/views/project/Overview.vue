@@ -14,8 +14,7 @@
     </n-card>
 </template>
 <script lang="ts" setup>
-import { Project } from '@/svc/storage';
-import { NForm, NFormItem, NInput, NCard } from 'naive-ui'
+import { Project } from '@/svc/storage'
 import { inject } from 'vue'
 
 const project = inject<Project>('project')

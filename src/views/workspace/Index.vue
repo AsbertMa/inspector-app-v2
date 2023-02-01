@@ -45,7 +45,6 @@ import { ref, onBeforeMount } from 'vue'
 import { DBInstance } from '@/svc/inject'
 import { Project } from '@/svc/storage'
 import { useRouter } from 'vue-router'
-import { NCard, NGrid, NGi, NButton, NIcon, NSpace, NModal } from 'naive-ui'
 import Add from './Add.vue'
 
 const _db = DBInstance()

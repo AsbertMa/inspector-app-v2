@@ -93,7 +93,7 @@
 </template>
 <script lang="ts" setup>
 import { defineProps, computed, ref, h, watch } from 'vue'
-import { NCard, NSpace, NButton, NInputGroup, NIcon, NInputGroupLabel, NText, NTable, NTabs, NTabPane, NDropdown, DropdownOption } from 'naive-ui'
+import {NInputGroupLabel, NText, DropdownOption, NInputGroup} from 'naive-ui'
 import History from '@/svc/HistoryHelper'
 const props = defineProps<{
     list: History<'event' | 'function'>[]

@@ -44,7 +44,6 @@
     </n-card>
 </template>
 <script lang="ts" setup>
-import { NTable, NCard, NButton, NIcon, NModal } from 'naive-ui'
 import { Node, ProjectSetting } from '@/svc/storage'
 import { inject, Ref, ref } from 'vue'
 import Edit from './EditConfig.vue'

@@ -3,7 +3,6 @@
 </template>
 <script lang="ts" setup>
 import { computed, ref, onMounted } from 'vue'
-import { NMenu } from 'naive-ui'
 import { h } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 

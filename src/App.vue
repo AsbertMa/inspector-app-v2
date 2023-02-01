@@ -14,7 +14,6 @@
   </n-layout>
 </template>
 <script setup lang="ts">
-import { NLayout, NLayoutHeader, NLayoutSider, NLayoutContent } from 'naive-ui'
 import Navbar from './components/Navbar.vue'
 import Tabs from '@/views/project/Tabs.vue'
 import { useRouter } from 'vue-router'

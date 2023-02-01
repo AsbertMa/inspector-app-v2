@@ -25,10 +25,10 @@
     </n-card>
 </template>
 <script lang="ts" setup>
-import { NForm, NFormItem, NInput, NSelect, NCard, NButton, NSpace, SelectOption, FormInst, FormItemRule } from 'naive-ui'
 import { DBInstance } from '@/svc/inject'
 import { onBeforeMount, defineEmits, ref } from 'vue'
 import { address } from 'thor-devkit'
+import {SelectOption, FormInst, FormItemRule} from 'naive-ui'
 
 const _db = DBInstance()
 const nodeList = ref<SelectOption[]>()

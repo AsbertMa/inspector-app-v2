@@ -5,10 +5,10 @@
     <n-menu v-model:value="val" v-bind="$attrs" :options="menuOptions"></n-menu>
 </template>
 <script lang="ts" setup>
-import { NMenu, MenuOption, NInput } from 'naive-ui'
 import ProtoFun from '@/abis/Prototype'
 import ProtoEvent from '@/abis/PrototypeEvent'
 import { computed, ref, defineProps } from 'vue'
+import { MenuOption } from 'naive-ui'
 import { ABI } from '@/abi'
 
 const props = defineProps<{
@@ -123,7 +123,7 @@ const menuOptions = computed(() => {
             fbs.children?.push({ ...child, type: 'fallback' })
         }
     })
-    
+
     return [read, write, event, fbs].concat(prototypeGroups()).filter(item => {
         return item.children && (item.children.length > 0)
     }).map(item => {

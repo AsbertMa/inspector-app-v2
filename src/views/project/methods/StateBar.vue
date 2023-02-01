@@ -19,7 +19,6 @@
 </template>
 <script lang="ts" setup>
 import { defineProps, ref, defineEmits, h } from 'vue'
-import { NInputGroup, NInputGroupLabel, NSelect, NText } from 'naive-ui'
 
 const props = defineProps<{
     name: string,
