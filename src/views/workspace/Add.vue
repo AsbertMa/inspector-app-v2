@@ -8,7 +8,7 @@
                 <n-input v-model:value="formValues.description" placeholder="ABI collection"></n-input>
             </n-form-item>
             <n-form-item label="ABI" path="abi">
-                <n-input v-model:value="formValues.abi" placeholder='Enter your ABI json K*input" : [], "name" : "functionName", type
+                <n-input v-model:value="formValues.abi" placeholder='Enter your ABI json [{"input" : [], "name" : "functionName", type
 "function" }]' type="textarea"></n-input>
             </n-form-item>
             <n-form-item label="Network" path="node">

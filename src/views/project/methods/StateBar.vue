@@ -11,8 +11,8 @@
         <n-select style="width: 250px" v-model:value="val" :render-tag="renderSelected" :render-label="renderLabel"
             :options="props.options" @update:value="onUpdate" />
         <n-input-group-label>
-            <n-text style="text-transform: capitalize;">
-                {{  props.name  }}
+            <n-text>
+                {{ props.name }}
             </n-text>
         </n-input-group-label>
     </n-input-group>
