@@ -2,12 +2,12 @@
     <n-card :bordered="false">
         <template #header>
             <n-space align="center">
-                <n-button type="tertiary" size="small" circle>
+                <n-button :disabled="leftDisable" @click="onLeft" type="tertiary" size="small" circle>
                     <template #icon>
                         <n-icon class="fa-solid fa-chevron-left" />
                     </template>
                 </n-button>
-                <n-button type="tertiary" size="small" circle>
+                <n-button :disabled="rightDisable" @click="onRight" type="tertiary" size="small" circle>
                     <template #icon>
                         <n-icon class="fa-solid fa-chevron-right" />
                     </template>
@@ -78,12 +78,14 @@
                     {{ current.response }}
                 </n-text>
             </n-tab-pane>
-            <n-tab-pane name="receipt" tab="Receipt" v-if="current.abi.type === 'function' && current.response && current.response.txid">
+            <n-tab-pane name="receipt" tab="Receipt"
+                v-if="current.abi.type === 'function' && current.response && current.response.txid">
                 <n-text code style="width: 100%;white-space: break-spaces; word-break: break-all;">
                     {{ current.receipt }}
                 </n-text>
             </n-tab-pane>
-            <n-tab-pane name="Tx" tab="Transaction" v-if="current.abi.type === 'function'  && current.response && current.response.txid">
+            <n-tab-pane name="Tx" tab="Transaction"
+                v-if="current.abi.type === 'function' && current.response && current.response.txid">
                 <n-text code style="width: 100%;white-space: break-spaces; word-break: break-all;">
                     {{ current.tx }}
                 </n-text>
@@ -93,7 +95,7 @@
 </template>
 <script lang="ts" setup>
 import { defineProps, computed, ref, h, watch } from 'vue'
-import {NInputGroupLabel, NText, DropdownOption, NInputGroup} from 'naive-ui'
+import { NInputGroupLabel, NText, DropdownOption, NInputGroup } from 'naive-ui'
 import History from '@/svc/HistoryHelper'
 const props = defineProps<{
     list: History<'event' | 'function'>[]
@@ -104,7 +106,7 @@ const tab = ref<string>('response')
 
 const current = computed(() => {
     if (selectIndex.value === undefined) {
-        return props.list[props.list.length - 1]
+        return props.list[0]
     } else {
         return props.list[selectIndex.value]
     }
@@ -122,8 +124,41 @@ const options = computed(() => {
             key: item.time,
             history: item
         }
-    }).reverse()
+    })
 })
+
+const leftDisable = computed(() => {
+    return !selectIndex.value
+})
+
+const rightDisable = computed(() => {
+    return props.list.length < 2 || selectIndex.value !== undefined && selectIndex.value >= props.list.length - 1
+})
+
+const onLeft = () => {
+    if (selectIndex.value !== undefined) {
+        if ( selectIndex.value > 0) {
+            -- selectIndex.value
+        } else {
+            return
+        }
+    } else {
+        selectIndex.value = props.list.length - 1
+    }
+}
+
+const onRight = () => {
+    if (selectIndex.value !== undefined) {
+        if (selectIndex.value < props.list.length - 1) {
+            ++ selectIndex.value
+        } else {
+            return
+        }
+    } else {
+        selectIndex.value = 0
+        ++ selectIndex.value
+    }
+}
 
 const type = computed(() => {
     const abi = current.value.abi
@@ -143,18 +178,18 @@ const type = computed(() => {
 })
 
 const renderLabel = (opt: DropdownOption) => {
-    const item = (opt as DropdownOption & { history: History<'event' | 'function'>}).history
+    const item = (opt as DropdownOption & { history: History<'event' | 'function'> }).history
     return h(
         NInputGroup,
         null,
         [
             h(NInputGroupLabel,
-            {
-                size: 'small'
-            }, [
+                {
+                    size: 'small'
+                }, [
                 h(NText, {
                     type: 'info',
-                    style: { textTransform: 'uppercase'}
+                    style: { textTransform: 'uppercase' }
                 }, [item.type])
             ]),
             h(NInputGroupLabel, {

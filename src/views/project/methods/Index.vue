@@ -7,7 +7,7 @@
             <abi-card :key="cardKey" @call="onCall" @execute="onExecute" @query="onQuery" :currentMethod="currentMethod" />
         </template>
         <template #right-bottom>
-            <HistoryView :list="list" />
+            <HistoryView :list="list.reverse()" />
         </template>
     </Container>
 </template>
