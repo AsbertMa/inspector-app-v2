@@ -7,7 +7,7 @@
             <abi-card :key="cardKey" @call="onCall" @execute="onExecute" @query="onQuery" :currentMethod="currentMethod" />
         </template>
         <template #right-bottom>
-            <HistoryView :list="list.reverse()" />
+            <HistoryView :list="list" />
         </template>
     </Container>
 </template>
@@ -43,7 +43,7 @@ const update = (time: number,
             params,
             response: response as Connex.Thor.Filter.Row<'event', Connex.Thor.Account.WithDecoded>[] | { message: string, code: string | number }
         }
-        list.value.push(item)
+        list.value.unshift(item)
     } else {
         const item: History<'function'> = {
             time,
@@ -55,11 +55,11 @@ const update = (time: number,
             params,
             response: response,
         }
-        list.value.push(item)
+        list.value.unshift(item)
     }
 
     if (list.value.length > 10) {
-        list.value.shift()
+        list.value.pop()
     }
 }
 
