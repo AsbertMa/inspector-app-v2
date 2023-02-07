@@ -8,6 +8,7 @@ import { Node, ProjectSetting } from "./storage"
 export default interface History<T extends 'event' | 'function', E = {}> {
     time: number
     node: Node
+    optinos?: any
     type: string
     caller?: T extends 'function' ? string : never
     abi: T extends 'event' ? abi.Event.Definition

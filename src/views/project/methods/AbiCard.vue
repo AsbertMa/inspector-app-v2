@@ -19,7 +19,7 @@
                 <n-code style="font-size: 12px" show-line-numbers :code="desc" />
             </n-tab-pane>
             <n-tab-pane name="input" tab="Inputs">
-                <n-form ref="inputsForm" :model="formValue" label-width="auto" label-align="left"
+                <n-form :key="formKey" ref="inputsForm" :model="formValue" label-width="auto"
                     label-placement="left">
                     <n-form-item :rule="rules.address" path="caller" v-if="abi?.type !== 'event'" label="Caller">
                         <n-input v-model:value="formValue.caller" placeholder="address"></n-input>
@@ -42,25 +42,42 @@
                         <n-input :placeholder="v.type" v-model:value="formValue.params[index]" v-else></n-input>
                     </n-form-item>
                     <template v-if="(abi?.type === 'function' && (abi?.constant === false || !['pure', 'view'].includes(abi?.stateMutability)))">
+                        <n-divider title-placement="left">Options</n-divider>
                         <n-form-item :rule="rules.address" path="excParams.signer" label="Signer">
-                            <n-input :v-model:value="formValue.excParams.signer" placeholder="Signer Address"></n-input>
+                            <n-input v-model:value="formValue.excParams.signer" placeholder="Signer Address"></n-input>
                         </n-form-item>
-                        <n-form-item label="Comment">
-                            <n-input placeholder="Tx comment"></n-input>
+                        <n-form-item :rule="rules.number" path="excParams.gas" label="Gas">
+                            <n-input-number :show-button="false" v-model:value="formValue.excParams.gas" placeholder="Gas" />
+                        </n-form-item>
+                        <n-form-item :rule="rules.number" path="excParams.dependsOn" label="Depends On">
+                            <n-input v-model:value="formValue.excParams.dependsOn" placeholder="Depends on (txId)"></n-input>
+                        </n-form-item>
+                        <n-form-item path="excParams.link" label="Link">
+                            <n-input v-model:value="formValue.excParams.link" placeholder="Link"></n-input>
+                        </n-form-item>
+                        <n-form-item path="excParams.delegateUrl" label="Delegate Url">
+                            <n-input v-model:value="formValue.excParams.delegateUrl" placeholder="Delegate Url"></n-input>
+                        </n-form-item>
+                        <n-form-item :rule="rules.address" path="excParams.delegater" label="Delegater">
+                            <n-input v-model:value="formValue.excParams.delegater" placeholder="Delegater"></n-input>
+                        </n-form-item>
+                        <n-form-item path="excParams.comment" label="Comment">
+                            <n-input v-model:value="formValue.excParams.comment" placeholder="Tx comment"></n-input>
                         </n-form-item>
                     </template>
                     <template v-if="abi?.type === 'event'">
-                        <n-form-item :rule="rules.eventParams.order" path="eventParams.order" label="Order">
+                        <n-divider title-placement="left">Options</n-divider>
+                        <n-form-item :rule="rules.order" path="eventParams.order" label="Order">
                             <n-input v-model:value="formValue.eventParams.order" placeholder="Order"></n-input>
                         </n-form-item>
-                        <n-form-item :rule="rules.eventParams.unit" path="eventParams.unit" label="Unit">
+                        <n-form-item :rule="rules.unit" path="eventParams.unit" label="Unit">
                             <n-input v-model:value="formValue.eventParams.unit" placeholder="Unit"></n-input>
                         </n-form-item>
-                        <n-form-item :rule="rules.eventParams.number" path="eventParams.from" label="From">
-                            <n-input v-model:value="formValue.eventParams.from" placeholder="From"></n-input>
+                        <n-form-item :rule="rules.number" path="eventParams.from" label="From">
+                            <n-input-number :show-button="false" v-model:value="formValue.eventParams.from" placeholder="From" />
                         </n-form-item>
-                        <n-form-item :rule="rules.eventParams.number" path="eventParams.to" label="To">
-                            <n-input v-model:value="formValue.eventParams.to" placeholder="To"></n-input>
+                        <n-form-item :rule="rules.number" path="eventParams.to" label="To">
+                            <n-input-number :show-button="false" v-model:value="formValue.eventParams.to" placeholder="To" />
                         </n-form-item>
                     </template>
                 </n-form>
@@ -80,8 +97,8 @@ const tab = ref('input')
 const props = defineProps<{ currentMethod?: MenuOption & { abi: ABI.Function.Definition | ABI.Event.Definition } }>()
 const emits = defineEmits<{
     (e: 'call', _settings: ProjectSetting, node: Node, params?: any[], caller?: string): void
-    (e: 'execute', _settings: ProjectSetting, node: Node, params?: any[]): void
-    (e: 'query', _settings: ProjectSetting, node: Node, params?: any[]): void
+    (e: 'execute', _settings: ProjectSetting, node: Node, params?: any[], opts: Record<string, any>): void
+    (e: 'query', _settings: ProjectSetting, node: Node, params?: any[], opts: Record<string, any>): void
 }>()
 
 const projectSettings = inject<Ref<{ setting: ProjectSetting, node: Node }[]>>('projectSettings')
@@ -108,7 +125,9 @@ const onAddressChange = (v: any, pConfig: { setting: ProjectSetting, node: Node 
     _node.value = pConfig.node
     _settings.value = pConfig.setting
 }
-
+const formKey = computed(() => {
+    return props.currentMethod?.label
+})
 const abi = computed(() => {
     return props.currentMethod ? props.currentMethod.abi : null
 })
@@ -121,30 +140,28 @@ const rules = {
             return true
         }
     },
-    eventParams: {
-        order: {
-            validator(rule: FormItemRule, value: string) {
-                console.log(value, '909')
-                if (!!value && !['asc', 'desc'].includes(value)) {
-                    return new Error('invalid')
-                }
+    order: {
+        validator(rule: FormItemRule, value: string) {
+            if (!!value && !['asc', 'desc'].includes(value)) {
+                return new Error('invalid')
             }
-        },
-        unit: {
-            validator(rule: FormItemRule, value: string) {
-                if (!!value && !['block', 'time'].includes(value)) {
-                    return new Error('invalid')
-                }
+        }
+    },
+    unit: {
+        validator(rule: FormItemRule, value: string) {
+            if (!!value && !['block', 'time'].includes(value)) {
+                return new Error('invalid')
             }
-        },
-        number: {
-            validator(rule: FormItemRule, value: string) {
-                if (!!value && !Number.isSafeInteger(value)) {
-                    return new Error('invalid')
-                }
+        }
+    },
+    number: {
+        validator(rule: FormItemRule, value: string) {
+            if (value && !Number.isSafeInteger(parseInt(value))) {
+                return new Error('invalid')
             }
         }
     }
+    
 }
 const inputsForm = ref<FormInst | null>(null)
 const formValue = reactive<{
@@ -152,7 +169,12 @@ const formValue = reactive<{
     params: Array<null | string>,
     excParams: {
         signer: string,
-        comment: string
+        comment: string,
+        gas: number,
+        dependsOn: string,
+        link: string,
+        delegateUrl: string,
+        delegater: string
     },
     eventParams: {
         order: 'desc' | 'asc',
@@ -165,7 +187,12 @@ const formValue = reactive<{
     params: [null],
     excParams: {
         signer: '',
-        comment: ''
+        comment: '',
+        dependsOn: '',
+        gas: null as unknown as number,
+        link: '',
+        delegateUrl: '',
+        delegater: ''
     },
     eventParams: {
         order: '' as unknown as 'desc',
@@ -191,14 +218,14 @@ const onCall = () => {
 const onExecute = () => {
     inputsForm.value?.validate((errors) => {
         if (!errors) {
-            emits('execute', _settings.value!, _node.value!, formValue.params)
+            emits('execute', _settings.value!, _node.value!, formValue.params, formValue.excParams)
         }
     })
 }
 const onQuery = () => {
     inputsForm.value?.validate((errors) => {
         if (!errors) {
-            emits('query', _settings.value!, _node.value!, formValue.params)
+            emits('query', _settings.value!, _node.value!, formValue.params, formValue.eventParams)
         }
     })
 }

@@ -23,7 +23,7 @@ import {
     NTable, NIcon, NModal,
     NSelect,
     NInputGroup, NInputGroupLabel, NText, NDropdown,
-    NGrid, NGi,
+    NGrid, NGi, NDivider, NInputNumber,
 } from 'naive-ui'
 const naive = create({
     components: [
@@ -35,7 +35,9 @@ const naive = create({
         NTabPane,
         NCode,
         NCollapse,
+        NDivider,
         NCollapseItem,
+        NInputNumber,
         NMenu,
         NInput,
         NRadio, NSpace, NCard, NRadioGroup,

@@ -4,7 +4,7 @@
             <AbiTree :abi="abis" @update-value="onAbiChange" />
         </template>
         <template #right-top>
-            <abi-card :key="cardKey" @call="onCall" @execute="onExecute" @query="onQuery" :currentMethod="currentMethod" />
+            <abi-card @call="onCall" @execute="onExecute" @query="onQuery" :currentMethod="currentMethod" />
         </template>
         <template #right-bottom>
             <HistoryView :list="list" />
@@ -26,11 +26,27 @@ import History from '@/svc/HistoryHelper'
 
 const list = ref<History<'event' | 'function'>[]>([])
 
+type ExecParams = {
+    signer: string
+    comment: string
+    gas: number
+    dependsOn: string
+    link: string
+    delegateUrl: string
+    delegater: string
+}
+type EventParams = {
+    order: 'desc' | 'asc'
+    unit: 'block' | 'time'
+    from: number
+    to: number
+}
 const update = (time: number,
     abi: ABI.Event.Definition | abi.Function.Definition,
     settings: ProjectSetting,
     node: Node,
     params: any[],
+    options?: any,
     response?: any,
     caller?: string) => {
     if (abi.type === 'event') {
@@ -41,6 +57,7 @@ const update = (time: number,
             type: (currentMethod.value as any).type,
             node,
             params,
+            options,
             response: response as Connex.Thor.Filter.Row<'event', Connex.Thor.Account.WithDecoded>[] | { message: string, code: string | number }
         }
         list.value.unshift(item)
@@ -53,6 +70,7 @@ const update = (time: number,
             abi,
             node,
             params,
+            options,
             response: response,
         }
         list.value.unshift(item)
@@ -72,9 +90,9 @@ const abis = computed(() => {
     }
 })
 
-const cardKey = computed(() => {
-    return currentMethod.value?.label
-})
+// const cardKey = computed(() => {
+//     return currentMethod.value?.label
+// })
 const currentMethod = ref<MenuOption & { abi: ABI.Function.Definition | ABI.Event.Definition }>()
 
 const onAbiChange = (key: string, item: MenuOption & { abi: ABI.Event.Definition | ABI.Function.Definition }) => {
@@ -106,7 +124,7 @@ const fetchTx = async (txid: string, node: Node) => {
     return {tx, receipt}
 }
 
-const onExecute = async (settings: ProjectSetting, node: Node, params: any[] = []) => {
+const onExecute = async (settings: ProjectSetting, node: Node, params: any[] = [], opts: ExecParams) => {
     const connex = getConnex(node)
     const account = connex.thor.account(settings.address)
     const abi = currentMethod.value?.abi
@@ -117,12 +135,22 @@ const onExecute = async (settings: ProjectSetting, node: Node, params: any[] = [
         return abi?.inputs[index].type.endsWith(']') ? JSON.parse(item) : item
     })
     try {
-        txResp = await method.transact(...temp).request()
-        update(time, abi!, settings, node, temp, txResp, undefined)
+        const txSvc = method.transact(...temp)
+        console.log(opts)
+
+        opts.gas && txSvc.gas(opts.gas)
+        opts.link && txSvc.link(opts.link)
+        opts.dependsOn && txSvc.dependsOn(opts.dependsOn)
+        opts.signer && txSvc.signer(opts.signer)
+        opts.delegateUrl && txSvc.delegate(opts.delegateUrl, opts.delegater)
+        opts.comment && txSvc.comment(opts.comment)
+
+        txResp = await txSvc.request()
+        update(time, abi!, settings, node, temp, opts, txResp, undefined)
 
     } catch (e) {
         console.error(e)
-        update(time, abi!, settings, node, temp, e as { code: number | string, message: string }, undefined)
+        update(time, abi!, settings, node, temp, opts, e as { code: number | string, message: string }, undefined)
     }
 
     try {
@@ -164,7 +192,7 @@ const onCall = async (settings: ProjectSetting, node: Node, params: any[] = [], 
     }
 }
 
-const onQuery = async (settings: ProjectSetting, node: Node, params: any[] = []) => {
+const onQuery = async (settings: ProjectSetting, node: Node, params: any[] = [], opts: EventParams) => {
     const connex = getConnex(node)
     const account = connex.thor.account(settings.address)
     const abi = currentMethod.value?.abi
@@ -178,8 +206,17 @@ const onQuery = async (settings: ProjectSetting, node: Node, params: any[] = [])
         }
     })
     const event = account.event(abi || {})
-    const resp = await event.filter(filters).order('desc').apply(0, 5)
+    const temp = event.filter(filters).order(opts.order || 'desc')
+    if (opts.unit && opts.from && opts.to) {
+        temp.range({
+            unit: opts.unit,
+            from: opts.from,
+            to: opts.to,
+        })
+    }
 
-    update(time, abi!, settings, node, params, resp)
+    const resp = await temp.apply(0, 5)
+
+    update(time, abi!, settings, node, params, opts, resp)
 }
 </script>
