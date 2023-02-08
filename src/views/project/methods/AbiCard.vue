@@ -86,7 +86,7 @@
     </n-card>
 </template>
 <script lang="ts" setup>
-import { computed, inject, ref, Ref, defineProps, onMounted, defineEmits, reactive } from 'vue'
+import { computed, inject, ref, Ref, defineProps, defineEmits, reactive, watch } from 'vue'
 import { FormInst, MenuOption, FormItemRule } from 'naive-ui'
 import { address } from 'thor-devkit'
 import { abi as ABI } from 'thor-devkit'
@@ -126,7 +126,7 @@ const onAddressChange = (v: any, pConfig: { setting: ProjectSetting, node: Node 
     _settings.value = pConfig.setting
 }
 const formKey = computed(() => {
-    return props.currentMethod?.label
+    return props.currentMethod?.key
 })
 const abi = computed(() => {
     return props.currentMethod ? props.currentMethod.abi : null
@@ -202,11 +202,11 @@ const formValue = reactive<{
     }
 })
 
-onMounted(() => {
+watch(formKey, (o) => {
     const temp = new Array(props.currentMethod?.abi.inputs.length)
     temp.fill(null)
     formValue.params = temp
-}, this)
+})
 
 const onCall = () => {
     inputsForm.value?.validate((errors) => {

@@ -90,9 +90,6 @@ const abis = computed(() => {
     }
 })
 
-// const cardKey = computed(() => {
-//     return currentMethod.value?.label
-// })
 const currentMethod = ref<MenuOption & { abi: ABI.Function.Definition | ABI.Event.Definition }>()
 
 const onAbiChange = (key: string, item: MenuOption & { abi: ABI.Event.Definition | ABI.Function.Definition }) => {
@@ -185,10 +182,10 @@ const onCall = async (settings: ProjectSetting, node: Node, params: any[] = [], 
         } else {
             resp = await method.call(...temp)
         }
-        update(time, abi!, settings, node, temp, resp, caller)
+        update(time, abi!, settings, node, temp, null, resp, caller)
     } catch (e) {
         console.error(e)
-        update(time, abi!, settings, node, temp, e as { code: number | string, message: string }, caller)
+        update(time, abi!, settings, node, temp, null, e as { code: number | string, message: string }, caller)
     }
 }
 
