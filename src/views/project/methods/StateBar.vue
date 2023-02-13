@@ -5,7 +5,7 @@
                 {{  props.type  }}
             </n-text>
         </n-input-group-label>
-        <n-select :show="'true'" style="width: 250px" v-model:value="val" :render-tag="renderSelected" :render-label="renderLabel"
+        <n-select style="width: 250px" v-model:value="val" :render-tag="renderSelected" :render-label="renderLabel"
             :options="props.options" @update:value="onUpdate" />
         <n-input-group-label>
             <n-text>
