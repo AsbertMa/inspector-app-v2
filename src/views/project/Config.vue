@@ -3,7 +3,7 @@
         <template #header>
             <div style="display: flex; align-items: center;">
                 <h4 style="margin: 0">Contract</h4>
-                <n-button @click="changeConfig()" quaternary circle>
+                <n-button @click="changeConfig" quaternary circle>
                     <template #icon>
                         <n-icon class="fa-solid fa-circle-plus" />
                     </template>
@@ -29,9 +29,9 @@
             </thead>
             <tbody>
                 <tr v-for="item in projectSettings" :key="item.setting.id">
-                    <td>{{  item.setting.name  }}</td>
-                    <td>{{  item.node.network  }}</td>
-                    <td>{{  item.setting.address  }}</td>
+                    <td>{{ item.setting.name }}</td>
+                    <td>{{ item.node.network }}</td>
+                    <td>{{ item.setting.address }}</td>
                     <td>
                         <n-button @click="changeConfig(item.setting)">Edit</n-button>
                     </td>

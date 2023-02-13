@@ -2,23 +2,22 @@
     <n-input-group>
         <n-input-group-label>
             <n-text style="text-transform: uppercase;" type="info">
-                {{ props.type }}
+                {{  props.type  }}
             </n-text>
         </n-input-group-label>
-        <n-input-group-label>
-            {{ opt?.item.node.network }}
-        </n-input-group-label>
-        <n-select style="width: 250px" v-model:value="val" :render-tag="renderSelected" :render-label="renderLabel"
+        <n-select :show="'true'" style="width: 250px" v-model:value="val" :render-tag="renderSelected" :render-label="renderLabel"
             :options="props.options" @update:value="onUpdate" />
         <n-input-group-label>
             <n-text>
-                {{ props.name }}
+                {{  props.name  }}
             </n-text>
         </n-input-group-label>
     </n-input-group>
 </template>
 <script lang="ts" setup>
+import { NTag } from 'naive-ui'
 import { defineProps, ref, defineEmits, h } from 'vue'
+import { $addr } from '@/funcs'
 
 const props = defineProps<{
     name: string,
@@ -35,10 +34,27 @@ const val = ref(props.options[0].item.setting.id)
 const opt = ref(props.options.find(item => item.value === val.value))
 
 const renderSelected = (props: { option: any, handleClose: () => void }) => {
-    return h('div', {
-            style: 'text-align: center'
-        },
-        props.option.item.setting.name
+    return h('div',
+        null,
+        [
+            h(NTag, {
+                type: 'info',
+                round: true,
+                size: 'small'
+            },
+                [
+                    props.option.item.node.network
+                ]),
+            h(
+                'span',
+                {
+                    style: {
+                        'margin-left': '5px'
+                    },
+                },
+                [props.option.item.setting.name]
+            )
+        ]
     )
 }
 
@@ -46,10 +62,30 @@ const renderLabel = (option: any) => {
     const item = option.item
     return h(
         'div',
-        null,
+        {
+            style: {
+                display: 'flex',
+                'align-items': 'center'
+            }
+        },
         [
-            h('div', null, [item.setting.name]),
-            h('small', null, [item.setting.address])
+            h(NTag, {
+                type: 'info',
+                round: true,
+                size: 'small'
+            },
+            [
+                   item.node.network
+            ]),
+            h('div', {
+                style: {
+                display: 'flex',
+                'flex-direction': 'column',
+            }
+            }, [
+                h('span', null, [item.setting.name]),
+                h('small', null, [$addr(item.setting.address)])
+            ])
         ]
     )
 }
