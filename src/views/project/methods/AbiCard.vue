@@ -6,11 +6,11 @@
                     :type="currentMethod && currentMethod.type" :options="opts" />
                 <n-button-group>
                     <template v-if="abi?.type === 'function'">
-                        <n-button @click="onCall">Call</n-button>
-                        <n-button v-if="(abi.constant === false ||
+                        <n-button :disabled="isLoading  && loadingBtn !== 'call'" :loading="isLoading && loadingBtn === 'call'" @click="onCall">Call</n-button>
+                        <n-button :disabled="isLoading  && loadingBtn !== 'execute'" :loading="isLoading && loadingBtn === 'execute'" v-if="(abi.constant === false ||
                         !['pure', 'view'].includes(abi.stateMutability))" @click="onExecute">Execute</n-button>
                     </template>
-                    <n-button v-else @click="onQuery">Query</n-button>
+                    <n-button v-else :disabled="isLoading && loadingBtn !== 'query'" :loading="isLoading && loadingBtn === 'query'" @click="onQuery">Query</n-button>
                 </n-button-group>
             </n-space>
         </template>
@@ -19,21 +19,17 @@
                 <n-code style="font-size: 12px" show-line-numbers :code="desc" />
             </n-tab-pane>
             <n-tab-pane name="input" tab="Inputs">
-                <n-form :key="formKey" ref="inputsForm" :model="formValue" label-width="auto"
-                    label-placement="left">
+                <n-form :key="formKey" ref="inputsForm" :model="formValue" label-width="auto" label-placement="left">
                     <n-form-item :rule="rules.address" path="caller" v-if="abi?.type !== 'event'" label="Caller">
                         <n-input v-model:value="formValue.caller" placeholder="address"></n-input>
                     </n-form-item>
-                    <n-form-item
-                        :path="`params[${index}]`"
-                        :rule="{
-                            required: abi?.type !== 'event',
-                            message: `${v.name} required`,
-                            trigger: 'blur'
-                        }"
-                        v-for="(v, index) in abi?.inputs" :key="v.name">
+                    <n-form-item :path="`params[${index}]`" :rule="{
+                        required: abi?.type !== 'event',
+                        message: `${v.name} required`,
+                        trigger: 'blur'
+                    }" v-for="(v, index) in abi?.inputs" :key="v.name">
                         <template #label>
-                            {{ v.name }}
+                            {{  v.name  }}
                         </template>
                         <n-radio-group v-model:value="formValue.params[index]" v-if="v.type === 'bool'">
                             <n-radio checked label="True" value="true"></n-radio>
@@ -41,22 +37,26 @@
                         </n-radio-group>
                         <n-input :placeholder="v.type" v-model:value="formValue.params[index]" v-else></n-input>
                     </n-form-item>
-                    <template v-if="(abi?.type === 'function' && (abi?.constant === false || !['pure', 'view'].includes(abi?.stateMutability)))">
+                    <template
+                        v-if="(abi?.type === 'function' && (abi?.constant === false || !['pure', 'view'].includes(abi?.stateMutability)))">
                         <n-divider title-placement="left">Options</n-divider>
                         <n-form-item :rule="rules.address" path="excParams.signer" label="Signer">
                             <n-input v-model:value="formValue.excParams.signer" placeholder="Signer Address"></n-input>
                         </n-form-item>
                         <n-form-item :rule="rules.number" path="excParams.gas" label="Gas">
-                            <n-input-number :show-button="false" v-model:value="formValue.excParams.gas" placeholder="Gas" />
+                            <n-input-number :show-button="false" v-model:value="formValue.excParams.gas"
+                                placeholder="Gas" />
                         </n-form-item>
                         <n-form-item :rule="rules.number" path="excParams.dependsOn" label="Depends On">
-                            <n-input v-model:value="formValue.excParams.dependsOn" placeholder="Depends on (txId)"></n-input>
+                            <n-input v-model:value="formValue.excParams.dependsOn" placeholder="Depends on (txId)">
+                            </n-input>
                         </n-form-item>
                         <n-form-item path="excParams.link" label="Link">
                             <n-input v-model:value="formValue.excParams.link" placeholder="Link"></n-input>
                         </n-form-item>
                         <n-form-item path="excParams.delegateUrl" label="Delegate Url">
-                            <n-input v-model:value="formValue.excParams.delegateUrl" placeholder="Delegate Url"></n-input>
+                            <n-input v-model:value="formValue.excParams.delegateUrl" placeholder="Delegate Url">
+                            </n-input>
                         </n-form-item>
                         <n-form-item :rule="rules.address" path="excParams.delegater" label="Delegater">
                             <n-input v-model:value="formValue.excParams.delegater" placeholder="Delegater"></n-input>
@@ -74,10 +74,12 @@
                             <n-input v-model:value="formValue.eventParams.unit" placeholder="Unit"></n-input>
                         </n-form-item>
                         <n-form-item :rule="rules.number" path="eventParams.from" label="From">
-                            <n-input-number :show-button="false" v-model:value="formValue.eventParams.from" placeholder="From" />
+                            <n-input-number :show-button="false" v-model:value="formValue.eventParams.from"
+                                placeholder="From" />
                         </n-form-item>
                         <n-form-item :rule="rules.number" path="eventParams.to" label="To">
-                            <n-input-number :show-button="false" v-model:value="formValue.eventParams.to" placeholder="To" />
+                            <n-input-number :show-button="false" v-model:value="formValue.eventParams.to"
+                                placeholder="To" />
                         </n-form-item>
                     </template>
                 </n-form>
@@ -87,14 +89,16 @@
 </template>
 <script lang="ts" setup>
 import { computed, inject, ref, Ref, defineProps, defineEmits, reactive, watch } from 'vue'
-import { FormInst, MenuOption, FormItemRule } from 'naive-ui'
+import { FormInst, MenuOption, FormItemRule, useLoadingBar } from 'naive-ui'
 import { address } from 'thor-devkit'
 import { abi as ABI } from 'thor-devkit'
 import StateBar from './StateBar.vue'
 import { ProjectSetting, Node } from '@/svc/storage'
 
 const tab = ref('input')
-const props = defineProps<{ currentMethod?: MenuOption & { abi: ABI.Function.Definition | ABI.Event.Definition } }>()
+const loadingBar = useLoadingBar()
+const loadingBtn = ref<'call' | 'execute' | 'query'>('call')
+const props = defineProps<{ currentMethod?: MenuOption & { abi: ABI.Function.Definition | ABI.Event.Definition }, isLoading: boolean }>()
 const emits = defineEmits<{
     (e: 'call', _settings: ProjectSetting, node: Node, params?: any[], caller?: string): void
     (e: 'execute', _settings: ProjectSetting, node: Node, params?: any[], opts: Record<string, any>): void
@@ -121,6 +125,7 @@ const opts = computed(() => {
         }
     })
 })
+
 const onAddressChange = (v: any, pConfig: { setting: ProjectSetting, node: Node }) => {
     _node.value = pConfig.node
     _settings.value = pConfig.setting
@@ -161,7 +166,7 @@ const rules = {
             }
         }
     }
-    
+
 }
 const inputsForm = ref<FormInst | null>(null)
 const formValue = reactive<{
@@ -201,7 +206,13 @@ const formValue = reactive<{
         to: '' as unknown as number
     }
 })
-
+watch(() => props.isLoading, (o) => {
+    if (o) {
+        loadingBar.start()
+    } else {
+        loadingBar.finish()
+    }
+})
 watch(formKey, (o) => {
     const temp = new Array(props.currentMethod?.abi.inputs.length)
     temp.fill(null)
@@ -209,6 +220,7 @@ watch(formKey, (o) => {
 })
 
 const onCall = () => {
+    loadingBtn.value = 'call'
     inputsForm.value?.validate((errors) => {
         if (!errors) {
             emits('call', _settings.value!, _node.value!, formValue.params, formValue.caller)
@@ -216,6 +228,7 @@ const onCall = () => {
     })
 }
 const onExecute = () => {
+    loadingBtn.value = 'execute'
     inputsForm.value?.validate((errors) => {
         if (!errors) {
             emits('execute', _settings.value!, _node.value!, formValue.params, formValue.excParams)
@@ -223,6 +236,7 @@ const onExecute = () => {
     })
 }
 const onQuery = () => {
+    loadingBtn.value = 'query'
     inputsForm.value?.validate((errors) => {
         if (!errors) {
             emits('query', _settings.value!, _node.value!, formValue.params, formValue.eventParams)

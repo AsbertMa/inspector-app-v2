@@ -4,10 +4,22 @@
             <AbiTree :abi="abis" @update-value="onAbiChange" />
         </template>
         <template #right-top>
-            <abi-card @call="onCall" @execute="onExecute" @query="onQuery" :currentMethod="currentMethod" />
+            <div style="position: relative;">
+                <n-loading-bar-provider :to="loadingBarRef" container-style="position: absolute;">
+                    <div ref="loadingBarRef"
+                    style="
+                        position: absolute;
+                        inset: 0;
+                        border-radius: var(--n-border-radius);
+                        overflow: hidden;
+                        pointer-events: none;"
+                />
+                    <abi-card @call="onCall" @execute="onExecute" @query="onQuery" :currentMethod="currentMethod" :isLoading="loading"/>
+                </n-loading-bar-provider>
+            </div>
         </template>
         <template #right-bottom>
-            <HistoryView :list="list" />
+            <HistoryView :isLoading="loading" :list="list" />
         </template>
     </Container>
 </template>
@@ -25,6 +37,9 @@ import { Project, Node, ProjectSetting } from '@/svc/storage'
 import History from '@/svc/HistoryHelper'
 
 const list = ref<History<'event' | 'function'>[]>([])
+const loading = ref<boolean>(false)
+// const loadingBar = useLoadingBar()
+const loadingBarRef = ref(undefined)
 
 type ExecParams = {
     signer: string
@@ -132,8 +147,8 @@ const onExecute = async (settings: ProjectSetting, node: Node, params: any[] = [
         return abi?.inputs[index].type.endsWith(']') ? JSON.parse(item) : item
     })
     try {
+        loading.value = true
         const txSvc = method.transact(...temp)
-        console.log(opts)
 
         opts.gas && txSvc.gas(opts.gas)
         opts.link && txSvc.link(opts.link)
@@ -148,6 +163,8 @@ const onExecute = async (settings: ProjectSetting, node: Node, params: any[] = [
     } catch (e) {
         console.error(e)
         update(time, abi!, settings, node, temp, opts, e as { code: number | string, message: string }, undefined)
+    } finally {
+        loading.value = false
     }
 
     try {
@@ -177,6 +194,7 @@ const onCall = async (settings: ProjectSetting, node: Node, params: any[] = [], 
         return abi?.inputs[index].type.endsWith(']') ? JSON.parse(item) : item
     })
     try {
+        loading.value = true
         if (caller) {
             resp = await method.caller(caller).call(...temp)
         } else {
@@ -186,6 +204,8 @@ const onCall = async (settings: ProjectSetting, node: Node, params: any[] = [], 
     } catch (e) {
         console.error(e)
         update(time, abi!, settings, node, temp, null, e as { code: number | string, message: string }, caller)
+    } finally {
+        loading.value = false
     }
 }
 
@@ -202,18 +222,24 @@ const onQuery = async (settings: ProjectSetting, node: Node, params: any[] = [],
             })
         }
     })
-    const event = account.event(abi || {})
-    const temp = event.filter(filters).order(opts.order || 'desc')
-    if (opts.unit && opts.from && opts.to) {
-        temp.range({
-            unit: opts.unit,
-            from: opts.from,
-            to: opts.to,
-        })
+    try {
+        loading.value = true
+        const event = account.event(abi || {})
+        const temp = event.filter(filters).order(opts.order || 'desc')
+        if (opts.unit && opts.from && opts.to) {
+            temp.range({
+                unit: opts.unit,
+                from: opts.from,
+                to: opts.to,
+            })
+        }
+
+        const resp = await temp.apply(0, 5)
+        update(time, abi!, settings, node, params, opts, resp)
+    } catch (error) {
+        console.error(error)
+    } finally {
+        loading.value = false
     }
-
-    const resp = await temp.apply(0, 5)
-
-    update(time, abi!, settings, node, params, opts, resp)
 }
 </script>

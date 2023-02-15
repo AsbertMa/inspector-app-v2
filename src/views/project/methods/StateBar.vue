@@ -72,7 +72,10 @@ const renderLabel = (option: any) => {
             h(NTag, {
                 type: 'info',
                 round: true,
-                size: 'small'
+                size: 'small',
+                style: {
+                    'margin-right': '5px'
+                }
             },
             [
                    item.node.network

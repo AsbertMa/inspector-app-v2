@@ -1,5 +1,5 @@
 <template>
-    <n-card title="new Workspace" style="max-width: 600px;">
+    <n-card title="New Workspace" style="max-width: 600px;">
         <n-form ref="formRef" :model="formValues" :rules="formRules" @submit="save">
             <n-form-item label="Name" path="name">
                 <n-input v-model:value="formValues.name" placeholder="Workspace Name"></n-input>

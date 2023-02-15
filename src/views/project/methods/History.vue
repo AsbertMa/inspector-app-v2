@@ -79,13 +79,13 @@
                 </n-text>
             </n-tab-pane>
             <n-tab-pane name="receipt" tab="Receipt"
-                v-if="current.abi.type === 'function' && current.response && current.response.txid">
+                v-if="current.abi.type === 'function' && current.response && current.receipt">
                 <n-text code style="width: 100%;white-space: break-spaces; word-break: break-all;">
                     {{ current.receipt }}
                 </n-text>
             </n-tab-pane>
             <n-tab-pane name="Tx" tab="Transaction"
-                v-if="current.abi.type === 'function' && current.response && current.response.txid">
+                v-if="current.abi.type === 'function' && current.response && current.tx">
                 <n-text code style="width: 100%;white-space: break-spaces; word-break: break-all;">
                     {{ current.tx }}
                 </n-text>
@@ -98,7 +98,8 @@ import { defineProps, computed, ref, h, watch } from 'vue'
 import { NInputGroupLabel, NText, DropdownOption, NInputGroup } from 'naive-ui'
 import History from '@/svc/HistoryHelper'
 const props = defineProps<{
-    list: History<'event' | 'function'>[]
+    list: History<'event' | 'function'>[],
+    isLoading: boolean
 }>()
 
 const selectIndex = ref<number>()
@@ -111,7 +112,9 @@ const current = computed(() => {
         return props.list[selectIndex.value]
     }
 })
-
+watch(current, () => {
+    tab.value = 'response'
+})
 watch(props.list, () => {
     selectIndex.value = undefined
     tab.value = 'response'

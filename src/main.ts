@@ -24,6 +24,7 @@ import {
     NSelect,
     NInputGroup, NInputGroupLabel, NText, NDropdown,
     NGrid, NGi, NDivider, NInputNumber,
+    NLoadingBarProvider
 } from 'naive-ui'
 const naive = create({
     components: [
@@ -45,7 +46,8 @@ const naive = create({
         NTable, NIcon, NModal,
         NSelect,
         NInputGroup, NInputGroupLabel, NText, NDropdown,
-        NGrid, NGi
+        NGrid, NGi, 
+        NLoadingBarProvider
     ]
 })
 
