@@ -1,14 +1,14 @@
 <template>
-  <div @mousemove="onMousemove" ref="container" class="draggable-container">
+  <div @mousemove="onMousemove" ref="container" @mouseup="setActive(false)" @mouseleave="setActive(false)" class="draggable-container">
     <div ref="side" class="side">
         <slot name="side"> </slot>
     </div>
-    <div @mousedown="onMousedown(true)" @mouseup="onMouseup(true)" class="drag-bar-v"></div>
+    <div @mousedown="onMousedown(true)" @mouseup="onBarMouseup(true)" class="drag-bar-v"></div>
     <div class="other-side">
       <div class="top">
         <slot name="right-top"></slot>
       </div>
-      <div @mousedown="onMousedown(false)" @mouseup="onMouseup(false)" class="drag-bar-h"></div>
+      <div @mousedown="onMousedown(false)" @mouseup="onBarMouseup(false)" class="drag-bar-h"></div>
       <div class="bottom">
         <slot name="right-bottom" ></slot>
       </div>
@@ -18,18 +18,27 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+const minWidth = 250
+const minHeight = 150
+
 const container = ref()
 const side = ref()
 let colResize = ref(false)
 let rowResize = ref(false)
+let isActive = ref(false)
+
 const onMousedown = (isCol: boolean) => {
+  isActive.value = true
   if (isCol) {
     colResize.value = true
   } else {
     rowResize.value = true
   }
 }
-const onMouseup = (isCol: boolean) => {
+const setActive = (ok: boolean) => {
+    isActive.value = ok
+}
+const onBarMouseup = (isCol: boolean) => {
   if (isCol) {
     colResize.value = false
   } else {
@@ -38,17 +47,43 @@ const onMouseup = (isCol: boolean) => {
 }
 
 const onMousemove = (e: MouseEvent) => {
+  if(!isActive.value) {
+    return
+  }
   const containerEl = container.value as HTMLDivElement
   const containerHeight = containerEl.clientHeight
   const containerWidth = containerEl.clientWidth
   const viewPortWidth = window.innerWidth
   const viewPortHeight = window.innerHeight
   if (colResize.value) {
-    containerEl.style.setProperty('--side_width', containerWidth - (viewPortWidth - e.clientX) + 'px')
+    let width
+    const temp = containerWidth - (viewPortWidth - e.clientX)
+    if ( temp > minWidth/2 && temp < minWidth ) {
+        width = minWidth
+    } else if (temp < minWidth/2) {
+        width = 0
+    } else {
+        width = temp
+    }
+    
+    containerEl.style.setProperty('--side_width', width + 'px')
   }
 
   if (rowResize.value) {
-    containerEl.style.setProperty('--top_height', containerHeight - (viewPortHeight - e.clientY) + 'px')
+    let height
+    const temp = containerHeight - (viewPortHeight - e.clientY)
+    if (temp > minHeight/2 && temp < minHeight) {
+        height = minHeight
+    } else if (temp < minHeight/2) {
+        height = 0
+    } else if (temp < containerHeight - minHeight/2 && temp > containerHeight - minHeight) {
+        height = containerHeight - minHeight
+    } else if (temp > containerHeight - minHeight/2){
+        height = containerHeight - 5
+    } else {
+        height = temp
+    }
+    containerEl.style.setProperty('--top_height', height + 'px')
   }
 }
 
